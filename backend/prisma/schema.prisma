@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Trade {
+  id          String   @id @default(cuid())
+  txHash      String?  @unique
+  type        String   // "swap" | "arbitrage"
+  tokenIn     String
+  tokenOut    String
+  amountIn    String
+  amountOut   String
+  profit      String?
+  pool        String?
+  buyPool     String?
+  sellPool    String?
+  status      String   @default("pending") // pending | confirmed | failed
+  gasUsed     String?
+  gasCost     String?
+  userAddress String?
+  createdAt   DateTime @default(now())
+
+  @@index([type])
+  @@index([createdAt])
+  @@index([userAddress])
+}
+
+model PriceSnapshot {
+  id        String   @id @default(cuid())
+  token     String
+  pair      String
+  dexName   String
+  price     Float
+  liquidity Float?
+  createdAt DateTime @default(now())
+
+  @@index([token, dexName])
+  @@index([createdAt])
+}
+
+model ArbitrageOpportunity {
+  id           String   @id @default(cuid())
+  tokenPair    String
+  buyDex       String
+  sellDex      String
+  buyPrice     Float
+  sellPrice    Float
+  spread       Float
+  profitEstimate Float
+  status       String   @default("detected") // detected | executed | expired | failed
+  executedTxHash String?
+  createdAt    DateTime @default(now())
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model BotState {
+  id             String   @id @default("singleton")
+  isRunning      Boolean  @default(false)
+  totalTrades    Int      @default(0)
+  totalProfit    Float    @default(0)
+  winRate        Float    @default(0)
+  maxDrawdown    Float    @default(0)
+  dailyPnL       Float    @default(0)
+  dailyLossLimit Float    @default(1000)
+  maxTradeSize   Float    @default(10000)
+  updatedAt      DateTime @updatedAt
+}
