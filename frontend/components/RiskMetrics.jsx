@@ -2,12 +2,11 @@
 import { useEffect, useState } from "react";
 import { getTradeStats } from "../lib/api";
 
-function MetricCard({ label, value, color = "text-white", sub }) {
+function Metric({ label, value, color = "text-white" }) {
   return (
-    <div className="bg-photon-bg rounded-xl p-4">
-      <div className="text-xs text-photon-muted mb-1">{label}</div>
-      <div className={`text-xl font-bold stat-number ${color}`}>{value}</div>
-      {sub && <div className="text-xs text-photon-muted mt-1">{sub}</div>}
+    <div className="bg-dex-card rounded-lg p-2.5">
+      <div className="text-[10px] text-dex-muted uppercase tracking-wider mb-0.5">{label}</div>
+      <div className={`text-[14px] font-bold font-num ${color}`}>{value}</div>
     </div>
   );
 }
@@ -22,7 +21,6 @@ export default function RiskMetrics() {
         const s = await getTradeStats();
         setStats(s);
       } catch {
-        // Demo stats
         setStats({
           totalTrades: 47,
           winRate: 72.3,
@@ -43,57 +41,57 @@ export default function RiskMetrics() {
 
   if (loading) {
     return (
-      <div className="bg-photon-card border border-photon-border rounded-2xl p-6">
-        <p className="text-photon-muted text-sm">Loading metrics...</p>
+      <div className="bg-dex-surface border border-dex-border rounded-xl p-4">
+        <div className="text-dex-muted text-[13px]">Loading metrics...</div>
       </div>
     );
   }
 
   return (
-    <div className="bg-photon-card border border-photon-border rounded-2xl p-6">
-      <h3 className="text-lg font-semibold mb-4">Performance Metrics</h3>
+    <div className="bg-dex-surface border border-dex-border rounded-xl overflow-hidden">
+      <div className="px-4 py-3 border-b border-dex-border">
+        <span className="text-[13px] font-semibold text-white">Performance</span>
+      </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <MetricCard
+      <div className="p-3 grid grid-cols-2 gap-2">
+        <Metric
           label="Total Profit"
           value={`${stats?.totalProfit >= 0 ? "+" : ""}${(stats?.totalProfit || 0).toFixed(4)} ETH`}
-          color={stats?.totalProfit >= 0 ? "text-photon-green" : "text-photon-red"}
+          color={stats?.totalProfit >= 0 ? "text-dex-green" : "text-dex-red"}
         />
-        <MetricCard
+        <Metric
           label="Win Rate"
           value={`${(stats?.winRate || 0).toFixed(1)}%`}
-          color={(stats?.winRate || 0) >= 50 ? "text-photon-green" : "text-photon-red"}
+          color={(stats?.winRate || 0) >= 50 ? "text-dex-green" : "text-dex-red"}
         />
-        <MetricCard
+        <Metric
           label="Sharpe Ratio"
           value={(stats?.sharpeRatio || 0).toFixed(2)}
-          color={(stats?.sharpeRatio || 0) >= 1 ? "text-photon-green" : "text-photon-muted"}
-          sub="Risk-adjusted return"
+          color={(stats?.sharpeRatio || 0) >= 1 ? "text-dex-green" : "text-dex-muted"}
         />
-        <MetricCard
+        <Metric
           label="Max Drawdown"
           value={`${(stats?.maxDrawdown || 0).toFixed(4)} ETH`}
-          color="text-photon-red"
-          sub="Largest peak-to-trough"
+          color="text-dex-red"
         />
-        <MetricCard
+        <Metric
           label="Total Trades"
           value={stats?.totalTrades || 0}
         />
-        <MetricCard
-          label="Avg Profit/Trade"
+        <Metric
+          label="Avg Profit"
           value={`${(stats?.avgProfit || 0).toFixed(4)} ETH`}
-          color={(stats?.avgProfit || 0) >= 0 ? "text-photon-green" : "text-photon-red"}
+          color={(stats?.avgProfit || 0) >= 0 ? "text-dex-green" : "text-dex-red"}
         />
-        <MetricCard
+        <Metric
           label="Best Trade"
           value={`+${(stats?.bestTrade || 0).toFixed(4)} ETH`}
-          color="text-photon-green"
+          color="text-dex-green"
         />
-        <MetricCard
-          label="Total Gas Spent"
+        <Metric
+          label="Gas Spent"
           value={`${(stats?.totalGas || 0).toFixed(5)} ETH`}
-          color="text-photon-muted"
+          color="text-dex-muted"
         />
       </div>
     </div>

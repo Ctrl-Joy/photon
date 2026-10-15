@@ -17,10 +17,12 @@ export default function PriceComparison() {
 
   if (tokens.length === 0) {
     return (
-      <div className="bg-photon-card border border-photon-border rounded-2xl p-6">
-        <h3 className="text-lg font-semibold mb-4">Live Prices</h3>
-        <div className="text-photon-muted text-sm text-center py-8">
-          <div className="live-dot mx-auto mb-3" />
+      <div className="bg-dex-surface border border-dex-border rounded-2xl p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-[14px] font-semibold text-white">Live Prices</span>
+          <div className="live-dot" />
+        </div>
+        <div className="text-dex-muted text-[13px] text-center py-8">
           Connecting to price feed...
         </div>
       </div>
@@ -28,9 +30,9 @@ export default function PriceComparison() {
   }
 
   return (
-    <div className="bg-photon-card border border-photon-border rounded-2xl p-6">
+    <div className="bg-dex-surface border border-dex-border rounded-2xl p-5">
       <div className="flex items-center gap-2 mb-4">
-        <h3 className="text-lg font-semibold">Live Prices</h3>
+        <span className="text-[14px] font-semibold text-white">Live Prices</span>
         <div className="live-dot" />
       </div>
 
@@ -44,31 +46,33 @@ export default function PriceComparison() {
           const spread = maxPrice > 0 ? (((maxPrice - minPrice) / minPrice) * 100).toFixed(3) : "0";
 
           return (
-            <div key={token} className="bg-photon-bg rounded-xl p-4">
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-semibold">{token}</span>
+            <div key={token} className="bg-dex-card rounded-xl p-3.5">
+              <div className="flex items-center justify-between mb-2.5">
+                <span className="text-[13px] font-semibold text-white">{token}</span>
                 <span
-                  className={`text-xs px-2 py-0.5 rounded-full ${
+                  className={`text-[11px] font-num px-2 py-0.5 rounded-md ${
                     parseFloat(spread) > 0.5
-                      ? "bg-photon-green/10 text-photon-green"
-                      : "bg-photon-muted/10 text-photon-muted"
+                      ? "bg-dex-green/10 text-dex-green"
+                      : "bg-dex-border text-dex-muted"
                   }`}
                 >
-                  Spread: {spread}%
+                  {spread}% spread
                 </span>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 {dexNames.map((dex) => {
                   const price = dexPrices[dex];
                   const isBest = price === minPrice && priceValues.length > 1;
                   return (
-                    <div key={dex} className="flex items-center justify-between text-sm">
-                      <span className="text-photon-muted">{dex}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="stat-number">${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    <div key={dex} className="flex items-center justify-between text-[12px]">
+                      <span className="text-dex-muted">{dex}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-num text-white">
+                          ${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
                         {isBest && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-photon-green/10 text-photon-green">
-                            BEST
+                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-dex-green/10 text-dex-green uppercase tracking-wide">
+                            Best
                           </span>
                         )}
                       </div>

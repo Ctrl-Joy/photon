@@ -4,16 +4,6 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-:root {
-  --bg: #0E0E16;
-  --card: #1B1B2F;
-  --border: #2A2A45;
-  --blue: #2F8AF5;
-  --purple: #6C5CE7;
-  --green: #00B894;
-  --red: #FF6B6B;
-}
-
 * {
   margin: 0;
   padding: 0;
@@ -21,69 +11,73 @@
 }
 
 body {
-  background-color: var(--bg);
+  background-color: #000000;
   color: #FFFFFF;
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbar */
+/* Scrollbar — 1inch style: barely visible */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 ::-webkit-scrollbar-track {
-  background: #0E0E16;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2A2A45;
-  border-radius: 3px;
+  background: #1E1E2E;
+  border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3A3A55;
+  background: #2A2A3C;
 }
 
-/* Glow effect for cards */
-.card-glow {
-  position: relative;
-}
-.card-glow::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  background: linear-gradient(135deg, rgba(47,138,245,0.2), rgba(108,92,231,0.2));
-  z-index: -1;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-.card-glow:hover::before {
-  opacity: 1;
+/* Monospace numbers */
+.font-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 
-/* Gradient text */
-.gradient-text {
-  background: linear-gradient(135deg, #2F8AF5, #6C5CE7);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Pulse animation for live indicators */
+/* Live pulse dot */
 .live-dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: #00B894;
+  background: #3FB68B;
+  box-shadow: 0 0 6px #3FB68B;
   animation: livePulse 2s ease-in-out infinite;
 }
 @keyframes livePulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0, 184, 148, 0.7); }
-  50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(0, 184, 148, 0); }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 
-/* Stat card number animation */
-.stat-number {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+/* Token icon placeholder circles */
+.token-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* Smooth input focus */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Selection */
+::selection {
+  background: rgba(47, 138, 245, 0.3);
 }

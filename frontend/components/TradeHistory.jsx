@@ -12,7 +12,6 @@ export default function TradeHistory() {
         const t = await getTradeHistory(20);
         setTrades(t || []);
       } catch {
-        // Use demo data
         setTrades(generateDemoTrades());
       }
       setLoading(false);
@@ -44,73 +43,70 @@ export default function TradeHistory() {
   }
 
   return (
-    <div className="bg-photon-card border border-photon-border rounded-2xl overflow-hidden">
-      <div className="p-6 border-b border-photon-border">
-        <h3 className="text-lg font-semibold">Trade History</h3>
+    <div className="bg-dex-surface border border-dex-border rounded-xl overflow-hidden">
+      <div className="px-4 py-3 border-b border-dex-border">
+        <span className="text-[13px] font-semibold text-white">Trade History</span>
       </div>
 
       {loading ? (
-        <div className="p-10 text-center text-photon-muted">Loading trades...</div>
+        <div className="p-8 text-center text-dex-muted text-[13px]">Loading trades...</div>
       ) : trades.length === 0 ? (
-        <div className="p-10 text-center text-photon-muted">
-          <p>No trades yet. Start swapping or run the arbitrage bot!</p>
+        <div className="p-8 text-center">
+          <div className="text-dex-muted text-[13px]">No trades yet</div>
+          <div className="text-dex-dimmed text-[11px] mt-1">Start swapping or run the arb bot</div>
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full">
             <thead>
-              <tr className="text-photon-muted text-xs border-b border-photon-border">
-                <th className="text-left px-6 py-3 font-medium">Type</th>
-                <th className="text-left px-6 py-3 font-medium">Pair</th>
-                <th className="text-right px-6 py-3 font-medium">Amount</th>
-                <th className="text-right px-6 py-3 font-medium">Profit</th>
-                <th className="text-right px-6 py-3 font-medium">Gas</th>
-                <th className="text-left px-6 py-3 font-medium">Status</th>
-                <th className="text-left px-6 py-3 font-medium">Time</th>
+              <tr className="text-dex-muted text-[11px] uppercase tracking-wider border-b border-dex-border">
+                <th className="text-left px-4 py-2.5 font-medium">Type</th>
+                <th className="text-left px-4 py-2.5 font-medium">Pair</th>
+                <th className="text-right px-4 py-2.5 font-medium">Amount</th>
+                <th className="text-right px-4 py-2.5 font-medium">Profit</th>
+                <th className="text-right px-4 py-2.5 font-medium">Gas</th>
+                <th className="text-left px-4 py-2.5 font-medium">Status</th>
+                <th className="text-left px-4 py-2.5 font-medium">Time</th>
               </tr>
             </thead>
             <tbody>
               {trades.map((t, i) => (
                 <tr
                   key={t.id || i}
-                  className="border-b border-photon-border/50 hover:bg-photon-bg/50 transition-colors"
+                  className="border-b border-dex-border/40 hover:bg-dex-card/50 transition-colors text-[12px]"
                 >
-                  <td className="px-6 py-3">
+                  <td className="px-4 py-2.5">
                     <span
-                      className={`text-xs font-medium px-2 py-1 rounded-lg ${
+                      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
                         t.type === "ARBITRAGE"
-                          ? "bg-photon-purple/10 text-photon-purple"
-                          : "bg-photon-blue/10 text-photon-blue"
+                          ? "bg-dex-purple/10 text-dex-purple"
+                          : "bg-dex-blue/10 text-dex-blue"
                       }`}
                     >
                       {t.type}
                     </span>
                   </td>
-                  <td className="px-6 py-3 font-medium">{t.pair}</td>
-                  <td className="px-6 py-3 text-right stat-number">{t.amountIn}</td>
-                  <td className="px-6 py-3 text-right">
+                  <td className="px-4 py-2.5 font-medium text-white">{t.pair}</td>
+                  <td className="px-4 py-2.5 text-right font-num text-white">{t.amountIn}</td>
+                  <td className="px-4 py-2.5 text-right">
                     <span
-                      className={`stat-number ${
-                        parseFloat(t.profit) >= 0 ? "text-photon-green" : "text-photon-red"
+                      className={`font-num ${
+                        parseFloat(t.profit) >= 0 ? "text-dex-green" : "text-dex-red"
                       }`}
                     >
                       {parseFloat(t.profit) >= 0 ? "+" : ""}
                       {t.profit}
                     </span>
                   </td>
-                  <td className="px-6 py-3 text-right stat-number text-photon-muted">
+                  <td className="px-4 py-2.5 text-right font-num text-dex-muted">
                     {t.gasUsed}
                   </td>
-                  <td className="px-6 py-3">
-                    <span
-                      className={`text-xs ${
-                        t.status === "SUCCESS" ? "text-photon-green" : "text-photon-red"
-                      }`}
-                    >
+                  <td className="px-4 py-2.5">
+                    <span className={`text-[10px] font-medium ${t.status === "SUCCESS" ? "text-dex-green" : "text-dex-red"}`}>
                       {t.status}
                     </span>
                   </td>
-                  <td className="px-6 py-3 text-photon-muted text-xs">
+                  <td className="px-4 py-2.5 text-dex-muted text-[11px]">
                     {new Date(t.timestamp).toLocaleString("en-US", {
                       month: "short",
                       day: "numeric",

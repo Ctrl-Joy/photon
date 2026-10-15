@@ -8,12 +8,10 @@ export default function ArbitrageTable() {
   const [executing, setExecuting] = useState(null);
   const [results, setResults] = useState({});
 
-  // Load initial opportunities
   useEffect(() => {
     getOpportunities().then(setOpportunities).catch(console.error);
   }, []);
 
-  // Live arb alerts
   useEffect(() => {
     const socket = getSocket();
     socket.on("arbAlert", (data) => {
@@ -58,96 +56,87 @@ export default function ArbitrageTable() {
   };
 
   return (
-    <div className="bg-photon-card border border-photon-border rounded-2xl overflow-hidden">
-      <div className="p-6 border-b border-photon-border">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">Arbitrage Opportunities</h3>
-            <div className="live-dot" />
-          </div>
-          <span className="text-xs text-photon-muted bg-photon-bg rounded-lg px-2 py-1">
-            {opportunities.length} found
-          </span>
+    <div className="bg-dex-surface border border-dex-border rounded-xl overflow-hidden">
+      {/* Header — dYdX style compact */}
+      <div className="px-4 py-3 border-b border-dex-border flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-[13px] font-semibold text-white">Arbitrage Opportunities</span>
+          <div className="live-dot" />
         </div>
+        <span className="text-[11px] font-num text-dex-muted bg-dex-card rounded-md px-2 py-0.5">
+          {opportunities.length} found
+        </span>
       </div>
 
       {opportunities.length === 0 ? (
-        <div className="p-10 text-center text-photon-muted">
-          <p className="text-lg mb-1">Scanning for opportunities...</p>
-          <p className="text-sm">Arbitrage opportunities appear when price spreads exceed 0.5%</p>
+        <div className="px-4 py-12 text-center">
+          <div className="text-dex-muted text-[13px] mb-1">Scanning for opportunities...</div>
+          <div className="text-dex-dimmed text-[11px]">Arb alerts appear when spreads exceed 0.5%</div>
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full">
             <thead>
-              <tr className="text-photon-muted text-xs border-b border-photon-border">
-                <th className="text-left px-6 py-3 font-medium">Token</th>
-                <th className="text-left px-6 py-3 font-medium">Buy DEX</th>
-                <th className="text-left px-6 py-3 font-medium">Sell DEX</th>
-                <th className="text-right px-6 py-3 font-medium">Spread</th>
-                <th className="text-right px-6 py-3 font-medium">Est. Profit</th>
-                <th className="text-right px-6 py-3 font-medium">Actions</th>
+              <tr className="text-dex-muted text-[11px] uppercase tracking-wider border-b border-dex-border">
+                <th className="text-left px-4 py-2.5 font-medium">Token</th>
+                <th className="text-left px-4 py-2.5 font-medium">Buy</th>
+                <th className="text-left px-4 py-2.5 font-medium">Sell</th>
+                <th className="text-right px-4 py-2.5 font-medium">Spread</th>
+                <th className="text-right px-4 py-2.5 font-medium">Est. Profit</th>
+                <th className="text-right px-4 py-2.5 font-medium">Action</th>
               </tr>
             </thead>
             <tbody>
               {opportunities.map((opp, i) => (
                 <tr
                   key={opp.id || i}
-                  className="border-b border-photon-border/50 hover:bg-photon-bg/50 transition-colors"
+                  className="border-b border-dex-border/50 hover:bg-dex-card/50 transition-colors text-[13px]"
                 >
-                  <td className="px-6 py-4 font-semibold">{opp.token}</td>
-                  <td className="px-6 py-4">
-                    <div>
-                      <div className="text-photon-green">{opp.buyDex}</div>
-                      <div className="text-photon-muted text-xs stat-number">
-                        ${parseFloat(opp.buyPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                      </div>
+                  <td className="px-4 py-3 font-semibold text-white">{opp.token}</td>
+                  <td className="px-4 py-3">
+                    <div className="text-dex-green text-[12px] font-medium">{opp.buyDex}</div>
+                    <div className="text-dex-muted text-[11px] font-num">
+                      ${parseFloat(opp.buyPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <div>
-                      <div className="text-photon-red">{opp.sellDex}</div>
-                      <div className="text-photon-muted text-xs stat-number">
-                        ${parseFloat(opp.sellPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                      </div>
+                  <td className="px-4 py-3">
+                    <div className="text-dex-red text-[12px] font-medium">{opp.sellDex}</div>
+                    <div className="text-dex-muted text-[11px] font-num">
+                      ${parseFloat(opp.sellPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <span className="text-photon-green stat-number">
+                  <td className="px-4 py-3 text-right">
+                    <span className="text-dex-green font-num text-[12px]">
                       {parseFloat(opp.spreadPercent).toFixed(3)}%
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <span className="stat-number text-photon-green">
+                  <td className="px-4 py-3 text-right">
+                    <span className="font-num text-dex-green text-[12px]">
                       ${parseFloat(opp.estimatedProfit || 0).toFixed(2)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center justify-end gap-1.5">
                       <button
                         onClick={() => handleSimulate(opp)}
                         disabled={executing === opp.id}
-                        className="text-xs bg-photon-bg border border-photon-border hover:border-photon-blue/50 px-3 py-1.5 rounded-lg transition-all disabled:opacity-50"
+                        className="text-[11px] font-medium text-dex-muted hover:text-white bg-dex-card hover:bg-dex-elevated border border-dex-border px-2.5 py-1 rounded-lg transition-all disabled:opacity-40"
                       >
-                        Simulate
+                        Sim
                       </button>
                       <button
                         onClick={() => handleExecute(opp)}
                         disabled={executing === opp.id}
-                        className="text-xs bg-gradient-photon hover:opacity-90 px-3 py-1.5 rounded-lg transition-all disabled:opacity-50"
+                        className="text-[11px] font-medium text-white bg-dex-blue hover:bg-dex-blue-hover px-2.5 py-1 rounded-lg transition-all disabled:opacity-40"
                       >
                         {executing === opp.id ? "..." : "Execute"}
                       </button>
                     </div>
                     {results[opp.id] && (
-                      <div
-                        className={`mt-2 text-xs ${
-                          results[opp.id].success ? "text-photon-green" : "text-photon-red"
-                        }`}
-                      >
+                      <div className={`mt-1 text-[10px] ${results[opp.id].success ? "text-dex-green" : "text-dex-red"}`}>
                         {results[opp.id].success
                           ? results[opp.id].simulated
-                            ? `Sim: $${results[opp.id].data?.profit?.toFixed(2) || "N/A"} profit`
+                            ? `Sim: $${results[opp.id].data?.profit?.toFixed(2) || "N/A"}`
                             : "Executed!"
                           : results[opp.id].error}
                       </div>

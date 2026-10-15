@@ -36,67 +36,68 @@ export default function BotControls() {
 
   if (loading) {
     return (
-      <div className="bg-photon-card border border-photon-border rounded-2xl p-6">
-        <p className="text-photon-muted text-sm">Loading bot status...</p>
+      <div className="bg-dex-surface border border-dex-border rounded-xl p-4">
+        <div className="text-dex-muted text-[13px]">Loading bot...</div>
       </div>
     );
   }
 
   return (
-    <div className="bg-photon-card border border-photon-border rounded-2xl p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold">Arbitrage Bot</h3>
+    <div className="bg-dex-surface border border-dex-border rounded-xl overflow-hidden">
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-dex-border flex items-center justify-between">
+        <span className="text-[13px] font-semibold text-white">Arbitrage Bot</span>
         <button
           onClick={handleToggle}
           disabled={toggling}
-          className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
-            status?.enabled ? "bg-photon-green" : "bg-photon-border"
+          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+            status?.enabled ? "bg-dex-green" : "bg-dex-border-light"
           }`}
         >
           <span
-            className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
-              status?.enabled ? "translate-x-6" : "translate-x-1"
+            className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+              status?.enabled ? "translate-x-[18px]" : "translate-x-[3px]"
             }`}
           />
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="bg-photon-bg rounded-xl p-3">
-          <div className="text-xs text-photon-muted mb-1">Status</div>
-          <div className={`font-semibold text-sm ${status?.enabled ? "text-photon-green" : "text-photon-red"}`}>
-            {status?.enabled ? "Active" : "Stopped"}
+      <div className="p-4 space-y-3">
+        {/* Status Row */}
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-dex-card rounded-lg p-2.5">
+            <div className="text-[10px] text-dex-muted uppercase tracking-wider mb-0.5">Status</div>
+            <div className={`text-[13px] font-semibold ${status?.enabled ? "text-dex-green" : "text-dex-red"}`}>
+              {status?.enabled ? "Running" : "Stopped"}
+            </div>
+          </div>
+          <div className="bg-dex-card rounded-lg p-2.5">
+            <div className="text-[10px] text-dex-muted uppercase tracking-wider mb-0.5">Kill Switch</div>
+            <div className={`text-[13px] font-semibold ${status?.killSwitchActive ? "text-dex-red" : "text-dex-green"}`}>
+              {status?.killSwitchActive ? "TRIGGERED" : "Normal"}
+            </div>
           </div>
         </div>
-        <div className="bg-photon-bg rounded-xl p-3">
-          <div className="text-xs text-photon-muted mb-1">Kill Switch</div>
-          <div className={`font-semibold text-sm ${status?.killSwitchActive ? "text-photon-red" : "text-photon-green"}`}>
-            {status?.killSwitchActive ? "TRIGGERED" : "Normal"}
-          </div>
-        </div>
-      </div>
 
-      {/* Risk Parameters */}
-      <div className="space-y-3">
-        <div className="text-sm font-medium text-photon-muted">Risk Parameters</div>
-        <div className="bg-photon-bg rounded-xl p-3 space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-photon-muted">Max Trade Size</span>
-            <span className="stat-number">{status?.maxTradeSize || "10"} ETH</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-photon-muted">Daily Loss Limit</span>
-            <span className="stat-number">{status?.dailyLossLimit || "5"} ETH</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-photon-muted">Min Spread</span>
-            <span className="stat-number">{status?.minSpread || "0.5"}%</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-photon-muted">Today&apos;s Loss</span>
-            <span className={`stat-number ${(status?.dailyLoss || 0) > 0 ? "text-photon-red" : "text-photon-green"}`}>
-              {status?.dailyLoss || "0"} ETH
-            </span>
+        {/* Risk Params */}
+        <div>
+          <div className="text-[10px] text-dex-muted uppercase tracking-wider mb-2">Risk Parameters</div>
+          <div className="bg-dex-card rounded-lg p-3 space-y-2">
+            {[
+              { label: "Max Trade Size", value: `${status?.maxTradeSize || "10"} ETH` },
+              { label: "Daily Loss Limit", value: `${status?.dailyLossLimit || "5"} ETH` },
+              { label: "Min Spread", value: `${status?.minSpread || "0.5"}%` },
+              {
+                label: "Today's Loss",
+                value: `${status?.dailyLoss || "0"} ETH`,
+                color: (status?.dailyLoss || 0) > 0 ? "text-dex-red" : "text-dex-green",
+              },
+            ].map((item) => (
+              <div key={item.label} className="flex justify-between items-center text-[12px]">
+                <span className="text-dex-muted">{item.label}</span>
+                <span className={`font-num ${item.color || "text-white"}`}>{item.value}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
