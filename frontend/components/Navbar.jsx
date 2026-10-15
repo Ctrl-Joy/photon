@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import WalletConnect from "./WalletConnect";
 
 const navLinks = [
-  { href: "/", label: "Home" },
   { href: "/swap", label: "Swap" },
   { href: "/arbitrage", label: "Arbitrage" },
   { href: "/dashboard", label: "Dashboard" },
@@ -16,27 +15,29 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-photon-bg/80 backdrop-blur-xl border-b border-photon-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-16">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b border-dex-border">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
+        <div className="flex items-center justify-between h-14">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-photon flex items-center justify-center">
-              <span className="text-white font-bold text-sm">⚡</span>
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-dex-blue to-dex-purple flex items-center justify-center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
             </div>
-            <span className="text-xl font-bold gradient-text">Photon</span>
+            <span className="text-lg font-bold text-white tracking-tight">Photon</span>
           </Link>
 
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-1">
+          {/* Desktop Nav — 1inch style pill links */}
+          <div className="hidden md:flex items-center gap-0.5 bg-dex-surface rounded-xl p-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                className={`px-4 py-1.5 rounded-lg text-[13px] font-medium transition-all ${
                   pathname === link.href
-                    ? "bg-photon-card text-photon-blue"
-                    : "text-photon-muted hover:text-white hover:bg-photon-card/50"
+                    ? "bg-dex-card text-white"
+                    : "text-dex-muted hover:text-white"
                 }`}
               >
                 {link.label}
@@ -44,14 +45,19 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Wallet + Mobile Toggle */}
+          {/* Right side */}
           <div className="flex items-center gap-3">
+            {/* Network indicator */}
+            <div className="hidden sm:flex items-center gap-1.5 bg-dex-surface rounded-lg px-2.5 py-1.5 text-[12px] text-dex-muted">
+              <div className="w-1.5 h-1.5 rounded-full bg-dex-green" />
+              Sepolia
+            </div>
             <WalletConnect />
             <button
-              className="md:hidden text-photon-muted hover:text-white"
+              className="md:hidden text-dex-muted hover:text-white"
               onClick={() => setMobileOpen(!mobileOpen)}
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 {mobileOpen ? (
                   <path d="M18 6L6 18M6 6l12 12" />
                 ) : (
@@ -64,16 +70,16 @@ export default function Navbar() {
 
         {/* Mobile Nav */}
         {mobileOpen && (
-          <div className="md:hidden pb-4 space-y-1">
+          <div className="md:hidden pb-3 space-y-0.5">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileOpen(false)}
-                className={`block px-4 py-3 rounded-xl text-sm font-medium ${
+                className={`block px-3 py-2.5 rounded-lg text-sm font-medium ${
                   pathname === link.href
-                    ? "bg-photon-card text-photon-blue"
-                    : "text-photon-muted hover:text-white"
+                    ? "bg-dex-surface text-white"
+                    : "text-dex-muted hover:text-white"
                 }`}
               >
                 {link.label}

@@ -7,39 +7,44 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // 1inch-inspired dark theme
-        photon: {
-          bg: "#0E0E16",
-          card: "#1B1B2F",
-          cardHover: "#232340",
-          border: "#2A2A45",
+        dex: {
+          black: "#000000",
+          bg: "#0A0A0F",
+          surface: "#111119",
+          card: "#16161E",
+          elevated: "#1C1C28",
+          border: "#1E1E2E",
+          "border-light": "#2A2A3C",
           blue: "#2F8AF5",
-          purple: "#6C5CE7",
-          green: "#00B894",
-          red: "#FF6B6B",
-          yellow: "#FDCB6E",
+          "blue-hover": "#1A7AE6",
+          purple: "#6966FF",
+          green: "#3FB68B",
+          red: "#FF5353",
+          yellow: "#F0B90B",
           text: "#FFFFFF",
-          muted: "#8B8CA7",
-          dim: "#5A5B75",
+          muted: "#72768F",
+          dimmed: "#3A3D5C",
         },
       },
-      backgroundImage: {
-        "gradient-photon": "linear-gradient(135deg, #2F8AF5, #6C5CE7)",
-        "gradient-green": "linear-gradient(135deg, #00B894, #00CEC9)",
-        "gradient-red": "linear-gradient(135deg, #FF6B6B, #E17055)",
-      },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        mono: ["JetBrains Mono", "monospace"],
+        sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
+        mono: ["JetBrains Mono", "SF Mono", "Fira Code", "monospace"],
+      },
+      backgroundImage: {
+        "gradient-blue": "linear-gradient(135deg, #2F8AF5 0%, #6966FF 100%)",
       },
       animation: {
-        "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-        "glow": "glow 2s ease-in-out infinite alternate",
+        "pulse-soft": "pulseSoft 2s ease-in-out infinite",
+        "fade-in": "fadeIn 0.3s ease-out",
       },
       keyframes: {
-        glow: {
-          "0%": { boxShadow: "0 0 5px rgba(47, 138, 245, 0.3)" },
-          "100%": { boxShadow: "0 0 20px rgba(47, 138, 245, 0.6)" },
+        pulseSoft: {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.5" },
+        },
+        fadeIn: {
+          "0%": { opacity: "0", transform: "translateY(4px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
       },
     },

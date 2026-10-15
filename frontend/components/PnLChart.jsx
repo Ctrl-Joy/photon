@@ -19,7 +19,6 @@ export default function PnLChart() {
     async function load() {
       try {
         const trades = await getTradeHistory(100);
-        // Build cumulative PnL from trade history
         let cumulative = 0;
         const chartData = (trades || []).map((t, i) => {
           cumulative += t.profit || 0;
@@ -64,9 +63,9 @@ export default function PnLChart() {
     if (active && payload?.length) {
       const d = payload[0].payload;
       return (
-        <div className="bg-photon-card border border-photon-border rounded-lg p-3 text-sm shadow-xl">
-          <div className="text-photon-muted mb-1">{d.time}</div>
-          <div className={`stat-number font-semibold ${d.pnl >= 0 ? "text-photon-green" : "text-photon-red"}`}>
+        <div className="bg-dex-card border border-dex-border rounded-lg p-2.5 text-[12px] shadow-xl">
+          <div className="text-dex-muted mb-1">{d.time}</div>
+          <div className={`font-num font-semibold ${d.pnl >= 0 ? "text-dex-green" : "text-dex-red"}`}>
             {d.pnl >= 0 ? "+" : ""}{d.pnl} ETH
           </div>
         </div>
@@ -78,54 +77,53 @@ export default function PnLChart() {
   const lastPnl = data.length > 0 ? data[data.length - 1].pnl : 0;
 
   return (
-    <div className="bg-photon-card border border-photon-border rounded-2xl p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="bg-dex-surface border border-dex-border rounded-xl overflow-hidden">
+      <div className="px-4 py-3 border-b border-dex-border flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Cumulative P&L</h3>
-          <p className={`text-2xl font-bold stat-number mt-1 ${lastPnl >= 0 ? "text-photon-green" : "text-photon-red"}`}>
+          <div className="text-[13px] font-semibold text-white">Cumulative P&L</div>
+          <div className={`text-[18px] font-bold font-num mt-0.5 ${lastPnl >= 0 ? "text-dex-green" : "text-dex-red"}`}>
             {lastPnl >= 0 ? "+" : ""}{lastPnl.toFixed(4)} ETH
-          </p>
+          </div>
         </div>
-        {data === generateDemoData && (
-          <span className="text-xs text-photon-muted bg-photon-bg rounded-lg px-2 py-1">Demo Data</span>
-        )}
       </div>
 
-      {loading ? (
-        <div className="h-64 flex items-center justify-center text-photon-muted">Loading chart...</div>
-      ) : (
-        <ResponsiveContainer width="100%" height={280}>
-          <AreaChart data={data}>
-            <defs>
-              <linearGradient id="pnlGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={lastPnl >= 0 ? "#00B894" : "#FF6B6B"} stopOpacity={0.3} />
-                <stop offset="100%" stopColor={lastPnl >= 0 ? "#00B894" : "#FF6B6B"} stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2A2A45" />
-            <XAxis
-              dataKey="time"
-              tick={{ fill: "#8B8CA7", fontSize: 11 }}
-              axisLine={{ stroke: "#2A2A45" }}
-              tickLine={false}
-            />
-            <YAxis
-              tick={{ fill: "#8B8CA7", fontSize: 11 }}
-              axisLine={{ stroke: "#2A2A45" }}
-              tickLine={false}
-              tickFormatter={(v) => `${v}`}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Area
-              type="monotone"
-              dataKey="pnl"
-              stroke={lastPnl >= 0 ? "#00B894" : "#FF6B6B"}
-              strokeWidth={2}
-              fill="url(#pnlGradient)"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      )}
+      <div className="p-4">
+        {loading ? (
+          <div className="h-[220px] flex items-center justify-center text-dex-muted text-[13px]">Loading chart...</div>
+        ) : (
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={data}>
+              <defs>
+                <linearGradient id="pnlGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={lastPnl >= 0 ? "#3FB68B" : "#FF5353"} stopOpacity={0.15} />
+                  <stop offset="100%" stopColor={lastPnl >= 0 ? "#3FB68B" : "#FF5353"} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1E1E2E" vertical={false} />
+              <XAxis
+                dataKey="time"
+                tick={{ fill: "#72768F", fontSize: 10 }}
+                axisLine={{ stroke: "#1E1E2E" }}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fill: "#72768F", fontSize: 10 }}
+                axisLine={false}
+                tickLine={false}
+                width={40}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Area
+                type="monotone"
+                dataKey="pnl"
+                stroke={lastPnl >= 0 ? "#3FB68B" : "#FF5353"}
+                strokeWidth={1.5}
+                fill="url(#pnlGrad)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
+      </div>
     </div>
   );
 }
