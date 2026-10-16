@@ -2,10 +2,10 @@
 import { useEffect, useState } from "react";
 import { getTradeStats } from "../lib/api";
 
-function Metric({ label, value, color = "text-white" }) {
+function Metric({ label, value, color = "text-photon-text" }) {
   return (
-    <div className="bg-dex-card rounded-lg p-2.5">
-      <div className="text-[10px] text-dex-muted uppercase tracking-wider mb-0.5">{label}</div>
+    <div className="bg-photon-bg-elevated rounded-xl p-3">
+      <div className="text-photon-text-muted text-[10px] uppercase tracking-wider mb-0.5">{label}</div>
       <div className={`text-[14px] font-bold font-num ${color}`}>{value}</div>
     </div>
   );
@@ -41,38 +41,38 @@ export default function RiskMetrics() {
 
   if (loading) {
     return (
-      <div className="bg-dex-surface border border-dex-border rounded-xl p-4">
-        <div className="text-dex-muted text-[13px]">Loading metrics...</div>
+      <div className="bg-photon-surface border border-photon-border rounded-2xl p-4">
+        <div className="text-photon-text-muted text-[13px]">Loading metrics...</div>
       </div>
     );
   }
 
   return (
-    <div className="bg-dex-surface border border-dex-border rounded-xl overflow-hidden">
-      <div className="px-4 py-3 border-b border-dex-border">
-        <span className="text-[13px] font-semibold text-white">Performance</span>
+    <div className="bg-photon-surface border border-photon-border rounded-2xl overflow-hidden">
+      <div className="px-4 py-3 border-b border-photon-border">
+        <span className="text-[13px] font-semibold text-photon-text font-heading">Performance</span>
       </div>
 
       <div className="p-3 grid grid-cols-2 gap-2">
         <Metric
           label="Total Profit"
           value={`${stats?.totalProfit >= 0 ? "+" : ""}${(stats?.totalProfit || 0).toFixed(4)} ETH`}
-          color={stats?.totalProfit >= 0 ? "text-dex-green" : "text-dex-red"}
+          color={stats?.totalProfit >= 0 ? "text-photon-positive" : "text-photon-negative"}
         />
         <Metric
           label="Win Rate"
           value={`${(stats?.winRate || 0).toFixed(1)}%`}
-          color={(stats?.winRate || 0) >= 50 ? "text-dex-green" : "text-dex-red"}
+          color={(stats?.winRate || 0) >= 50 ? "text-photon-positive" : "text-photon-negative"}
         />
         <Metric
           label="Sharpe Ratio"
           value={(stats?.sharpeRatio || 0).toFixed(2)}
-          color={(stats?.sharpeRatio || 0) >= 1 ? "text-dex-green" : "text-dex-muted"}
+          color={(stats?.sharpeRatio || 0) >= 1 ? "text-photon-positive" : "text-photon-text-muted"}
         />
         <Metric
           label="Max Drawdown"
           value={`${(stats?.maxDrawdown || 0).toFixed(4)} ETH`}
-          color="text-dex-red"
+          color="text-photon-negative"
         />
         <Metric
           label="Total Trades"
@@ -81,17 +81,17 @@ export default function RiskMetrics() {
         <Metric
           label="Avg Profit"
           value={`${(stats?.avgProfit || 0).toFixed(4)} ETH`}
-          color={(stats?.avgProfit || 0) >= 0 ? "text-dex-green" : "text-dex-red"}
+          color={(stats?.avgProfit || 0) >= 0 ? "text-photon-positive" : "text-photon-negative"}
         />
         <Metric
           label="Best Trade"
           value={`+${(stats?.bestTrade || 0).toFixed(4)} ETH`}
-          color="text-dex-green"
+          color="text-photon-positive"
         />
         <Metric
           label="Gas Spent"
           value={`${(stats?.totalGas || 0).toFixed(5)} ETH`}
-          color="text-dex-muted"
+          color="text-photon-text-muted"
         />
       </div>
     </div>

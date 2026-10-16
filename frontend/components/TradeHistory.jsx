@@ -43,23 +43,23 @@ export default function TradeHistory() {
   }
 
   return (
-    <div className="bg-dex-surface border border-dex-border rounded-xl overflow-hidden">
-      <div className="px-4 py-3 border-b border-dex-border">
-        <span className="text-[13px] font-semibold text-white">Trade History</span>
+    <div className="bg-photon-surface border border-photon-border rounded-2xl overflow-hidden">
+      <div className="px-4 py-3 border-b border-photon-border">
+        <span className="text-[13px] font-semibold text-photon-text">Trade History</span>
       </div>
 
       {loading ? (
-        <div className="p-8 text-center text-dex-muted text-[13px]">Loading trades...</div>
+        <div className="p-8 text-center text-photon-text-muted text-[13px]">Loading trades...</div>
       ) : trades.length === 0 ? (
         <div className="p-8 text-center">
-          <div className="text-dex-muted text-[13px]">No trades yet</div>
-          <div className="text-dex-dimmed text-[11px] mt-1">Start swapping or run the arb bot</div>
+          <div className="text-photon-text-muted text-[13px]">No trades yet</div>
+          <div className="text-photon-text-muted text-[11px] mt-1">Start swapping or run the arb bot</div>
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="text-dex-muted text-[11px] uppercase tracking-wider border-b border-dex-border">
+              <tr className="text-photon-text-muted text-[11px] uppercase tracking-wider border-b border-photon-border">
                 <th className="text-left px-4 py-2.5 font-medium">Type</th>
                 <th className="text-left px-4 py-2.5 font-medium">Pair</th>
                 <th className="text-right px-4 py-2.5 font-medium">Amount</th>
@@ -73,40 +73,40 @@ export default function TradeHistory() {
               {trades.map((t, i) => (
                 <tr
                   key={t.id || i}
-                  className="border-b border-dex-border/40 hover:bg-dex-card/50 transition-colors text-[12px]"
+                  className="border-b border-photon-border/40 hover:bg-photon-bg-elevated/50 transition-colors text-[12px]"
                 >
                   <td className="px-4 py-2.5">
                     <span
                       className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
                         t.type === "ARBITRAGE"
-                          ? "bg-dex-purple/10 text-dex-purple"
-                          : "bg-dex-blue/10 text-dex-blue"
+                          ? "bg-photon-purple/10 text-photon-purple"
+                          : "bg-photon-blue/10 text-photon-blue"
                       }`}
                     >
                       {t.type}
                     </span>
                   </td>
-                  <td className="px-4 py-2.5 font-medium text-white">{t.pair}</td>
-                  <td className="px-4 py-2.5 text-right font-num text-white">{t.amountIn}</td>
+                  <td className="px-4 py-2.5 text-photon-text font-medium">{t.pair}</td>
+                  <td className="px-4 py-2.5 text-right font-num text-photon-text">{t.amountIn}</td>
                   <td className="px-4 py-2.5 text-right">
                     <span
                       className={`font-num ${
-                        parseFloat(t.profit) >= 0 ? "text-dex-green" : "text-dex-red"
+                        parseFloat(t.profit) >= 0 ? "text-photon-positive" : "text-photon-negative"
                       }`}
                     >
                       {parseFloat(t.profit) >= 0 ? "+" : ""}
                       {t.profit}
                     </span>
                   </td>
-                  <td className="px-4 py-2.5 text-right font-num text-dex-muted">
+                  <td className="px-4 py-2.5 text-right font-num text-photon-text-muted">
                     {t.gasUsed}
                   </td>
                   <td className="px-4 py-2.5">
-                    <span className={`text-[10px] font-medium ${t.status === "SUCCESS" ? "text-dex-green" : "text-dex-red"}`}>
+                    <span className={`text-[10px] font-medium ${t.status === "SUCCESS" ? "text-photon-positive" : "text-photon-negative"}`}>
                       {t.status}
                     </span>
                   </td>
-                  <td className="px-4 py-2.5 text-dex-muted text-[11px]">
+                  <td className="px-4 py-2.5 text-photon-text-muted text-[11px]">
                     {new Date(t.timestamp).toLocaleString("en-US", {
                       month: "short",
                       day: "numeric",

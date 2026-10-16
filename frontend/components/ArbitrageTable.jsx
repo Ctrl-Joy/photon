@@ -56,28 +56,28 @@ export default function ArbitrageTable() {
   };
 
   return (
-    <div className="bg-dex-surface border border-dex-border rounded-xl overflow-hidden">
-      {/* Header — dYdX style compact */}
-      <div className="px-4 py-3 border-b border-dex-border flex items-center justify-between">
+    <div className="bg-photon-surface border border-photon-border rounded-2xl overflow-hidden">
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-photon-border flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-[13px] font-semibold text-white">Arbitrage Opportunities</span>
+          <span className="text-[13px] font-semibold text-photon-text font-heading">Arbitrage Opportunities</span>
           <div className="live-dot" />
         </div>
-        <span className="text-[11px] font-num text-dex-muted bg-dex-card rounded-md px-2 py-0.5">
+        <span className="text-[11px] font-num text-photon-text-muted bg-photon-bg-elevated rounded-md px-2 py-0.5">
           {opportunities.length} found
         </span>
       </div>
 
       {opportunities.length === 0 ? (
         <div className="px-4 py-12 text-center">
-          <div className="text-dex-muted text-[13px] mb-1">Scanning for opportunities...</div>
-          <div className="text-dex-dimmed text-[11px]">Arb alerts appear when spreads exceed 0.5%</div>
+          <div className="text-photon-text-muted text-[13px] mb-1">Scanning for opportunities...</div>
+          <div className="text-photon-text-muted/60 text-[11px]">Arb alerts appear when spreads exceed 0.5%</div>
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="text-dex-muted text-[11px] uppercase tracking-wider border-b border-dex-border">
+              <tr className="text-photon-text-muted text-[11px] uppercase tracking-wider border-b border-photon-border">
                 <th className="text-left px-4 py-2.5 font-medium">Token</th>
                 <th className="text-left px-4 py-2.5 font-medium">Buy</th>
                 <th className="text-left px-4 py-2.5 font-medium">Sell</th>
@@ -90,28 +90,28 @@ export default function ArbitrageTable() {
               {opportunities.map((opp, i) => (
                 <tr
                   key={opp.id || i}
-                  className="border-b border-dex-border/50 hover:bg-dex-card/50 transition-colors text-[13px]"
+                  className="border-b border-photon-border/50 hover:bg-photon-bg-elevated/50 transition-colors text-[13px]"
                 >
-                  <td className="px-4 py-3 font-semibold text-white">{opp.token}</td>
+                  <td className="px-4 py-3 font-semibold text-photon-text font-heading">{opp.token}</td>
                   <td className="px-4 py-3">
-                    <div className="text-dex-green text-[12px] font-medium">{opp.buyDex}</div>
-                    <div className="text-dex-muted text-[11px] font-num">
+                    <div className="text-photon-positive text-[12px] font-medium">{opp.buyDex}</div>
+                    <div className="text-photon-text-muted text-[11px] font-num">
                       ${parseFloat(opp.buyPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="text-dex-red text-[12px] font-medium">{opp.sellDex}</div>
-                    <div className="text-dex-muted text-[11px] font-num">
+                    <div className="text-photon-negative text-[12px] font-medium">{opp.sellDex}</div>
+                    <div className="text-photon-text-muted text-[11px] font-num">
                       ${parseFloat(opp.sellPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <span className="text-dex-green font-num text-[12px]">
+                    <span className="text-photon-positive font-num text-[12px]">
                       {parseFloat(opp.spreadPercent).toFixed(3)}%
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <span className="font-num text-dex-green text-[12px]">
+                    <span className="font-num text-photon-positive text-[12px]">
                       ${parseFloat(opp.estimatedProfit || 0).toFixed(2)}
                     </span>
                   </td>
@@ -120,20 +120,20 @@ export default function ArbitrageTable() {
                       <button
                         onClick={() => handleSimulate(opp)}
                         disabled={executing === opp.id}
-                        className="text-[11px] font-medium text-dex-muted hover:text-white bg-dex-card hover:bg-dex-elevated border border-dex-border px-2.5 py-1 rounded-lg transition-all disabled:opacity-40"
+                        className="text-[11px] font-medium text-photon-text-muted hover:text-photon-text bg-photon-bg-elevated hover:bg-photon-surface-raised border border-photon-border px-2.5 py-1 rounded-lg transition-all disabled:opacity-40"
                       >
                         Sim
                       </button>
                       <button
                         onClick={() => handleExecute(opp)}
                         disabled={executing === opp.id}
-                        className="text-[11px] font-medium text-white bg-dex-blue hover:bg-dex-blue-hover px-2.5 py-1 rounded-lg transition-all disabled:opacity-40"
+                        className="text-[11px] font-medium text-white bg-photon-blue hover:bg-photon-blue/80 px-2.5 py-1 rounded-lg transition-all disabled:opacity-40"
                       >
                         {executing === opp.id ? "..." : "Execute"}
                       </button>
                     </div>
                     {results[opp.id] && (
-                      <div className={`mt-1 text-[10px] ${results[opp.id].success ? "text-dex-green" : "text-dex-red"}`}>
+                      <div className={`mt-1 text-[10px] ${results[opp.id].success ? "text-photon-positive" : "text-photon-negative"}`}>
                         {results[opp.id].success
                           ? results[opp.id].simulated
                             ? `Sim: $${results[opp.id].data?.profit?.toFixed(2) || "N/A"}`

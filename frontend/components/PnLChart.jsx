@@ -63,9 +63,9 @@ export default function PnLChart() {
     if (active && payload?.length) {
       const d = payload[0].payload;
       return (
-        <div className="bg-dex-card border border-dex-border rounded-lg p-2.5 text-[12px] shadow-xl">
-          <div className="text-dex-muted mb-1">{d.time}</div>
-          <div className={`font-num font-semibold ${d.pnl >= 0 ? "text-dex-green" : "text-dex-red"}`}>
+        <div className="bg-photon-surface-raised border border-photon-border rounded-lg p-2.5 text-[12px] shadow-xl">
+          <div className="text-photon-text-muted mb-1">{d.time}</div>
+          <div className={`font-num font-semibold ${d.pnl >= 0 ? "text-photon-positive" : "text-photon-negative"}`}>
             {d.pnl >= 0 ? "+" : ""}{d.pnl} ETH
           </div>
         </div>
@@ -77,11 +77,11 @@ export default function PnLChart() {
   const lastPnl = data.length > 0 ? data[data.length - 1].pnl : 0;
 
   return (
-    <div className="bg-dex-surface border border-dex-border rounded-xl overflow-hidden">
-      <div className="px-4 py-3 border-b border-dex-border flex items-center justify-between">
+    <div className="bg-photon-surface border border-photon-border rounded-2xl overflow-hidden">
+      <div className="px-4 py-3 border-b border-photon-border flex items-center justify-between">
         <div>
-          <div className="text-[13px] font-semibold text-white">Cumulative P&L</div>
-          <div className={`text-[18px] font-bold font-num mt-0.5 ${lastPnl >= 0 ? "text-dex-green" : "text-dex-red"}`}>
+          <div className="text-[13px] font-semibold text-photon-text">Cumulative P&L</div>
+          <div className={`text-[18px] font-bold font-num mt-0.5 ${lastPnl >= 0 ? "text-photon-positive" : "text-photon-negative"}`}>
             {lastPnl >= 0 ? "+" : ""}{lastPnl.toFixed(4)} ETH
           </div>
         </div>
@@ -89,25 +89,25 @@ export default function PnLChart() {
 
       <div className="p-4">
         {loading ? (
-          <div className="h-[220px] flex items-center justify-center text-dex-muted text-[13px]">Loading chart...</div>
+          <div className="h-[220px] flex items-center justify-center text-photon-text-muted text-[13px]">Loading chart...</div>
         ) : (
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={data}>
               <defs>
                 <linearGradient id="pnlGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={lastPnl >= 0 ? "#3FB68B" : "#FF5353"} stopOpacity={0.15} />
-                  <stop offset="100%" stopColor={lastPnl >= 0 ? "#3FB68B" : "#FF5353"} stopOpacity={0} />
+                  <stop offset="0%" stopColor={lastPnl >= 0 ? "#54D6A0" : "#FF737D"} stopOpacity={0.15} />
+                  <stop offset="100%" stopColor={lastPnl >= 0 ? "#54D6A0" : "#FF737D"} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1E1E2E" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(167, 190, 216, 0.08)" vertical={false} />
               <XAxis
                 dataKey="time"
-                tick={{ fill: "#72768F", fontSize: 10 }}
-                axisLine={{ stroke: "#1E1E2E" }}
+                tick={{ fill: "#66768B", fontSize: 10 }}
+                axisLine={{ stroke: "rgba(167, 190, 216, 0.13)" }}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fill: "#72768F", fontSize: 10 }}
+                tick={{ fill: "#66768B", fontSize: 10 }}
                 axisLine={false}
                 tickLine={false}
                 width={40}
@@ -116,7 +116,7 @@ export default function PnLChart() {
               <Area
                 type="monotone"
                 dataKey="pnl"
-                stroke={lastPnl >= 0 ? "#3FB68B" : "#FF5353"}
+                stroke={lastPnl >= 0 ? "#54D6A0" : "#FF737D"}
                 strokeWidth={1.5}
                 fill="url(#pnlGrad)"
               />

@@ -74,11 +74,11 @@ export default function SwapCard() {
   return (
     <div className="w-full max-w-[420px] mx-auto">
       {/* Card */}
-      <div className="bg-dex-surface border border-dex-border rounded-2xl p-4">
+      <div className="bg-photon-surface border border-photon-border rounded-2xl p-5">
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
-          <span className="text-[15px] font-semibold text-white">Swap</span>
-          <button className="text-dex-muted hover:text-white transition-colors p-1">
+          <span className="text-[15px] font-semibold text-photon-text font-heading">Swap</span>
+          <button className="text-photon-text-muted hover:text-photon-text transition-colors p-1">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="3" />
               <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
@@ -87,26 +87,26 @@ export default function SwapCard() {
         </div>
 
         {/* You Pay */}
-        <div className="bg-dex-card rounded-xl p-4 mb-1">
-          <div className="text-[13px] text-dex-muted mb-2">You pay</div>
+        <div className="bg-photon-bg-elevated rounded-xl p-4 mb-1">
+          <div className="text-[13px] text-photon-text-muted mb-2">You pay</div>
           <div className="flex items-center justify-between gap-3">
             <input
               type="number"
               value={amountIn}
               onChange={(e) => setAmountIn(e.target.value)}
               placeholder="0"
-              className="bg-transparent text-[28px] font-medium text-white w-full outline-none placeholder:text-dex-dimmed font-num"
+              className="bg-transparent text-[28px] font-medium text-photon-text w-full outline-none placeholder:text-photon-text-muted font-num"
             />
-            <div className="flex items-center gap-2 bg-dex-elevated hover:bg-dex-border-light rounded-xl px-3 py-2 cursor-pointer transition-colors flex-shrink-0">
+            <div className="flex items-center gap-2 bg-photon-surface-raised hover:bg-photon-border-strong rounded-xl px-3 py-2 cursor-pointer transition-colors flex-shrink-0">
               <TokenIcon symbol={tokenIn} />
               <select
                 value={tokenIn}
                 onChange={(e) => setTokenIn(e.target.value)}
-                className="bg-transparent text-white text-[14px] font-semibold outline-none cursor-pointer appearance-none pr-4"
-                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2372768F' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right center' }}
+                className="bg-transparent text-photon-text text-[14px] font-semibold outline-none cursor-pointer appearance-none pr-4"
+                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2366768B' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right center' }}
               >
                 {TOKENS.map((t) => (
-                  <option key={t.symbol} value={t.symbol} className="bg-dex-card">
+                  <option key={t.symbol} value={t.symbol} className="bg-photon-surface">
                     {t.symbol}
                   </option>
                 ))}
@@ -117,9 +117,9 @@ export default function SwapCard() {
 
         {/* Swap Arrow */}
         <div className="flex justify-center -my-2 relative z-10">
-          <div className="bg-dex-surface border-4 border-dex-surface rounded-xl p-1.5">
-            <div className="bg-dex-card rounded-lg p-1.5 hover:bg-dex-elevated transition-colors cursor-pointer">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#72768F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <div className="bg-photon-surface border-4 border-photon-surface rounded-xl p-1.5">
+            <div className="bg-photon-bg-elevated rounded-lg p-1.5 hover:bg-photon-surface-raised transition-colors cursor-pointer">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#66768B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 5v14M5 12l7 7 7-7" />
               </svg>
             </div>
@@ -127,19 +127,19 @@ export default function SwapCard() {
         </div>
 
         {/* You Receive */}
-        <div className="bg-dex-card rounded-xl p-4 mb-3">
-          <div className="text-[13px] text-dex-muted mb-2">You receive</div>
+        <div className="bg-photon-bg-elevated rounded-xl p-4 mb-3">
+          <div className="text-[13px] text-photon-text-muted mb-2">You receive</div>
           <div className="flex items-center justify-between gap-3">
-            <span className="text-[28px] font-medium font-num text-white">
+            <span className="text-[28px] font-medium font-num text-photon-text">
               {loading
                 ? "..."
                 : quote?.bestQuote?.amountOut
                 ? parseFloat(quote.bestQuote.amountOut).toFixed(4)
                 : "0"}
             </span>
-            <div className="flex items-center gap-2 bg-dex-elevated rounded-xl px-3 py-2 flex-shrink-0">
+            <div className="flex items-center gap-2 bg-photon-surface-raised rounded-xl px-3 py-2 flex-shrink-0">
               <TokenIcon symbol={tokenOut} />
-              <span className="text-[14px] font-semibold text-white">{tokenOut}</span>
+              <span className="text-[14px] font-semibold text-photon-text">{tokenOut}</span>
             </div>
           </div>
         </div>
@@ -148,32 +148,32 @@ export default function SwapCard() {
         {quote?.bestQuote && (
           <div className="space-y-2 mb-3 px-1">
             <div className="flex justify-between text-[13px]">
-              <span className="text-dex-muted">Route</span>
-              <span className="text-white">{quote.bestQuote.poolName || "Best Pool"}</span>
+              <span className="text-photon-text-muted">Route</span>
+              <span className="text-photon-text">{quote.bestQuote.poolName || "Best Pool"}</span>
             </div>
             <div className="flex justify-between text-[13px]">
-              <span className="text-dex-muted">Price impact</span>
-              <span className="text-dex-green">&lt; 0.1%</span>
+              <span className="text-photon-text-muted">Price impact</span>
+              <span className="text-photon-positive">&lt; 0.1%</span>
             </div>
             {quote.allQuotes && (
               <div className="flex justify-between text-[13px]">
-                <span className="text-dex-muted">Pools checked</span>
-                <span className="text-white">{quote.allQuotes.length}</span>
+                <span className="text-photon-text-muted">Pools checked</span>
+                <span className="text-photon-text">{quote.allQuotes.length}</span>
               </div>
             )}
           </div>
         )}
 
-        {/* Swap Button — 1inch style blue */}
+        {/* Swap Button */}
         <button
           onClick={handleSwap}
           disabled={!quote || swapping || !amountIn}
           className={`w-full font-semibold py-3.5 rounded-xl text-[15px] transition-all ${
             !amountIn
-              ? "bg-dex-card text-dex-dimmed cursor-not-allowed"
+              ? "bg-photon-bg-elevated text-photon-text-muted cursor-not-allowed"
               : !quote
-              ? "bg-dex-card text-dex-muted cursor-wait"
-              : "bg-dex-blue hover:bg-dex-blue-hover text-white cursor-pointer"
+              ? "bg-photon-bg-elevated text-photon-text-muted cursor-wait"
+              : "bg-photon-blue hover:bg-photon-blue/80 text-white cursor-pointer"
           } disabled:opacity-60`}
         >
           {swapping
@@ -193,8 +193,8 @@ export default function SwapCard() {
         <div
           className={`mt-3 p-3 rounded-xl text-[13px] border animate-fade-in ${
             result.success
-              ? "bg-dex-green/5 border-dex-green/20 text-dex-green"
-              : "bg-dex-red/5 border-dex-red/20 text-dex-red"
+              ? "bg-photon-positive/5 border-photon-positive/20 text-photon-positive"
+              : "bg-photon-negative/5 border-photon-negative/20 text-photon-negative"
           }`}
         >
           {result.success

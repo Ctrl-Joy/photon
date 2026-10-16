@@ -9,12 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.2",
     "ethers": "^6.9.0",
+    "framer-motion": "^14.3.0",
+    "lightweight-charts": "^5.2.1",
     "next": "14.0.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "recharts": "^2.10.0",
-    "socket.io-client": "^4.7.0"
+    "socket.io-client": "^4.7.0",
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.16",

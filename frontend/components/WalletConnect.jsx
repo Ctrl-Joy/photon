@@ -30,9 +30,9 @@ export default function WalletConnect() {
 
   if (address) {
     return (
-      <div className="flex items-center gap-2 bg-dex-surface border border-dex-border rounded-xl px-3 py-1.5">
-        <div className="w-2 h-2 rounded-full bg-dex-green shadow-[0_0_6px_#3FB68B]" />
-        <span className="text-[13px] font-num text-dex-muted">
+      <div className="flex items-center gap-2 bg-photon-surface border border-photon-border rounded-xl px-3 py-1.5">
+        <div className="w-2 h-2 rounded-full bg-photon-positive shadow-[0_0_6px_#54D6A0]" />
+        <span className="text-[13px] font-num text-photon-text-muted">
           {address.slice(0, 6)}...{address.slice(-4)}
         </span>
       </div>
@@ -43,7 +43,7 @@ export default function WalletConnect() {
     <button
       onClick={handleConnect}
       disabled={connecting}
-      className="bg-dex-blue hover:bg-dex-blue-hover text-white text-[13px] font-semibold px-4 py-1.5 rounded-xl transition-colors disabled:opacity-50"
+      className="bg-photon-blue hover:bg-photon-blue/80 text-white text-[13px] font-semibold px-4 py-1.5 rounded-xl transition-colors disabled:opacity-50"
     >
       {connecting ? "Connecting..." : "Connect Wallet"}
     </button>

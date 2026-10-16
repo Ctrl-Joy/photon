@@ -4,9 +4,9 @@ import PriceComparison from "../../components/PriceComparison";
 
 export default function SwapPage() {
   return (
-    <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8">
       <div className="grid lg:grid-cols-5 gap-5">
-        {/* Swap Card — centered like 1inch */}
+        {/* Swap Card — centered */}
         <div className="lg:col-span-3 flex items-start justify-center pt-4">
           <SwapCard />
         </div>
