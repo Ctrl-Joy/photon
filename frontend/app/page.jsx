@@ -1,277 +1,382 @@
 "use client";
+
+import { useRef } from "react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { getSocket } from "../lib/socket";
+import { motion } from "framer-motion";
+import Navbar from "../components/Navbar";
+import PhotonNetwork from "../components/PhotonNetwork";
 
-const features = [
-  {
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#53B8FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="16 3 21 3 21 8" />
-        <line x1="4" y1="20" x2="21" y2="3" />
-        <polyline points="21 16 21 21 16 21" />
-        <line x1="15" y1="15" x2="21" y2="21" />
-        <line x1="4" y1="4" x2="9" y2="9" />
-      </svg>
-    ),
-    title: "Smart Order Routing",
-    desc: "Splits trades across multiple DEXs for best execution price with minimal slippage.",
-    color: "photon-blue",
-  },
-  {
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7B61FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-      </svg>
-    ),
-    title: "Real-Time Detection",
-    desc: "WebSocket price feeds scan every 5 seconds to spot cross-exchange price inefficiencies.",
-    color: "photon-purple",
-  },
-  {
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#54D6A0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-      </svg>
-    ),
-    title: "Atomic Execution",
-    desc: "Trades execute atomically on-chain. If not profitable, it reverts. Zero risk.",
-    color: "photon-positive",
-  },
-  {
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FF737D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      </svg>
-    ),
-    title: "Risk Management",
-    desc: "Daily loss limits, kill switch, slippage protection, Kelly-criterion sizing.",
-    color: "photon-negative",
-  },
-  {
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F5BE69" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="18" y1="20" x2="18" y2="10" />
-        <line x1="12" y1="20" x2="12" y2="4" />
-        <line x1="6" y1="20" x2="6" y2="14" />
-      </svg>
-    ),
-    title: "P&L Dashboard",
-    desc: "Sharpe ratio, win rate, max drawdown, and detailed trade history in real time.",
-    color: "photon-warning",
-  },
-  {
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#66768B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-        <path d="M16 7V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v3" />
-      </svg>
-    ),
-    title: "On-Chain Verified",
-    desc: "Every transaction is verifiable on Etherscan. Contracts are fully transparent.",
-    color: "photon-text-muted",
-  },
-];
+/* ─── Animation variants ─── */
+const fadeUp = {
+  hidden:  { opacity: 0, y: 24 },
+  visible: (i = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: 0.2 + i * 0.12, duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+  }),
+};
 
-const steps = [
-  {
-    step: "01",
-    title: "Price Aggregation",
-    desc: "Fetches live prices from CoinGecko, Jupiter, and on-chain pool reserves every 5 seconds.",
-  },
-  {
-    step: "02",
-    title: "Opportunity Detection",
-    desc: "Compares prices across DEXs. When spread exceeds 0.5%, a profitable opportunity is flagged.",
-  },
-  {
-    step: "03",
-    title: "Atomic Execution",
-    desc: "PhotonExecutor buys cheap and sells high in a single atomic transaction on-chain.",
-  },
-];
+const fadeIn = {
+  hidden:  { opacity: 0 },
+  visible: (i = 0) => ({
+    opacity: 1,
+    transition: { delay: 0.15 + i * 0.1, duration: 0.5 },
+  }),
+};
 
-const techStack = [
-  "Next.js 14",
-  "Solidity",
-  "Hardhat",
-  "ethers.js",
-  "Socket.io",
-  "PostgreSQL",
-  "Prisma",
-  "TailwindCSS",
-  "Recharts",
-  "Node.js",
-  "CoinGecko API",
-  "Sepolia Testnet",
-];
+/* ─── Feature icons (inline SVG) ─── */
+function AggregateIcon() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="8"  cy="8"  r="3" stroke="#53B8FF" strokeWidth="1.5" />
+      <circle cx="24" cy="8"  r="3" stroke="#53B8FF" strokeWidth="1.5" />
+      <circle cx="8"  cy="24" r="3" stroke="#53B8FF" strokeWidth="1.5" />
+      <circle cx="24" cy="24" r="3" stroke="#53B8FF" strokeWidth="1.5" />
+      <circle cx="16" cy="16" r="4" fill="#53B8FF" opacity="0.2" stroke="#53B8FF" strokeWidth="1.5" />
+      <line x1="11" y1="10" x2="13" y2="14" stroke="#53B8FF" strokeWidth="1" opacity="0.5" />
+      <line x1="21" y1="10" x2="19" y2="14" stroke="#53B8FF" strokeWidth="1" opacity="0.5" />
+      <line x1="11" y1="22" x2="13" y2="18" stroke="#53B8FF" strokeWidth="1" opacity="0.5" />
+      <line x1="21" y1="22" x2="19" y2="18" stroke="#53B8FF" strokeWidth="1" opacity="0.5" />
+    </svg>
+  );
+}
 
-export default function LandingPage() {
-  const [livePrice, setLivePrice] = useState(null);
+function MLIcon() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="4" y="20" width="4" height="8" rx="1" fill="#63F0E0" opacity="0.3" />
+      <rect x="10" y="14" width="4" height="14" rx="1" fill="#63F0E0" opacity="0.5" />
+      <rect x="16" y="10" width="4" height="18" rx="1" fill="#63F0E0" opacity="0.7" />
+      <rect x="22" y="4" width="4" height="24" rx="1" fill="#63F0E0" opacity="0.9" />
+      <path d="M6 18 L12 12 L18 8 L24 3" stroke="#63F0E0" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+    </svg>
+  );
+}
 
-  useEffect(() => {
-    const socket = getSocket();
-    socket.on("priceUpdate", (data) => {
-      if (data?.prices?.ETH) {
-        setLivePrice(data.prices.ETH);
-      }
-    });
-    return () => socket.off("priceUpdate");
-  }, []);
+function ShieldIcon() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M16 3L5 8v7c0 7.5 4.7 14.5 11 17 6.3-2.5 11-9.5 11-17V8L16 3z"
+        stroke="#54D6A0"
+        strokeWidth="1.5"
+        fill="none"
+      />
+      <path
+        d="M12 16l3 3 5-6"
+        stroke="#54D6A0"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
+/* ─── Step icons ─── */
+function ScanIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="8" stroke="#53B8FF" strokeWidth="1.5" fill="none" />
+      <line x1="18" y1="18" x2="25" y2="25" stroke="#53B8FF" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="12" cy="12" r="3" stroke="#53B8FF" strokeWidth="1" opacity="0.4" fill="none" />
+    </svg>
+  );
+}
+
+function AnalyzeIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="3" y="3" width="22" height="22" rx="3" stroke="#63F0E0" strokeWidth="1.5" fill="none" />
+      <polyline points="7,18 12,12 16,15 22,8" stroke="#63F0E0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    </svg>
+  );
+}
+
+function ExecuteIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="10,5 10,23 23,14" stroke="#54D6A0" strokeWidth="1.5" strokeLinejoin="round" fill="none" />
+    </svg>
+  );
+}
+
+/* ─── Feature card ─── */
+function FeatureCard({ icon, title, description, index }) {
+  return (
+    <motion.div
+      variants={fadeUp}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-60px" }}
+      custom={index}
+      className="surface-card p-6 sm:p-8 group hover:border-photon-border-strong transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-photon-blue/5"
+    >
+      <div className="w-12 h-12 rounded-xl bg-photon-surface-raised border border-photon-border flex items-center justify-center mb-5 group-hover:border-photon-blue/30 transition-colors duration-300">
+        {icon}
+      </div>
+      <h3 className="font-heading font-semibold text-lg text-photon-text mb-2">
+        {title}
+      </h3>
+      <p className="text-sm text-photon-text-secondary leading-relaxed">
+        {description}
+      </p>
+    </motion.div>
+  );
+}
+
+/* ─── How It Works step ─── */
+function StepItem({ icon, title, description, stepNum, isLast }) {
+  return (
+    <div className="flex flex-col items-center text-center flex-1 relative">
+      {/* Step number */}
+      <span className="font-mono text-xs text-photon-text-muted mb-3">
+        {String(stepNum).padStart(2, "0")}
+      </span>
+
+      {/* Icon circle */}
+      <div className="w-14 h-14 rounded-2xl bg-photon-surface border border-photon-border flex items-center justify-center mb-4">
+        {icon}
+      </div>
+
+      <h4 className="font-heading font-semibold text-photon-text mb-1.5">
+        {title}
+      </h4>
+      <p className="text-sm text-photon-text-secondary max-w-[220px] leading-relaxed">
+        {description}
+      </p>
+
+      {/* Connecting line (desktop only, not on last) */}
+      {!isLast && (
+        <div className="hidden md:block absolute top-[72px] left-[calc(50%+40px)] w-[calc(100%-80px)] h-px bg-photon-border" />
+      )}
+    </div>
+  );
+}
+
+/* ─── Page component ─── */
+export default function HomePage() {
+  const featuresRef = useRef(null);
 
   return (
     <div className="min-h-screen bg-photon-bg">
-      {/* ────── Hero ────── */}
-      <section className="relative overflow-hidden">
-        {/* Background glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-glow pointer-events-none animate-glow" />
-        <div className="absolute top-40 left-1/4 w-[300px] h-[300px] bg-photon-purple/5 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute top-60 right-1/4 w-[250px] h-[250px] bg-photon-cyan/5 rounded-full blur-[100px] pointer-events-none" />
+      <Navbar />
 
-        <div className="relative max-w-[1100px] mx-auto px-4 sm:px-6 pt-28 pb-20 md:pt-40 md:pb-32">
-          <div className="text-center animate-fade-up">
-            {/* Live price pill */}
-            {livePrice && (
-              <div className="inline-flex items-center gap-2 bg-photon-surface border border-photon-border rounded-full px-4 py-2 mb-8 animate-fade-in">
-                <div className="live-dot" />
-                <span className="text-[12px] text-photon-text-secondary font-num tracking-wide">
-                  ETH ${Object.values(livePrice)[0]?.toLocaleString() || "—"}
-                </span>
-              </div>
-            )}
+      {/* ── Hero Section ── */}
+      <section className="relative min-h-screen flex items-center overflow-hidden">
+        {/* 3D network background */}
+        <div className="absolute inset-0 z-0">
+          <PhotonNetwork />
+        </div>
 
-            <h1 className="text-[40px] sm:text-[52px] md:text-[68px] lg:text-[76px] font-heading font-bold text-photon-text tracking-tight leading-[1.05] mb-6">
-              The Fastest Path
+        {/* Gradient overlay for text readability */}
+        <div className="absolute inset-0 z-[1] bg-gradient-to-r from-photon-bg/95 via-photon-bg/70 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-32 z-[1] bg-gradient-to-t from-photon-bg to-transparent" />
+
+        {/* Hero content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 w-full">
+          <div className="max-w-2xl">
+            <motion.h1
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              custom={0}
+              className="font-heading font-bold text-4xl sm:text-5xl lg:text-6xl leading-[1.1] tracking-tight mb-6"
+            >
+              <span className="text-gradient">Where Market</span>
               <br />
-              Through{" "}
-              <span className="text-gradient">
-                DeFi Liquidity
-              </span>
-            </h1>
+              <span className="text-gradient">Inefficiencies</span>
+              <br />
+              <span className="text-photon-text">Become Visible</span>
+            </motion.h1>
 
-            <p className="text-[16px] md:text-[18px] text-photon-text-secondary max-w-[560px] mx-auto mb-12 leading-relaxed">
-              Photon aggregates liquidity across decentralized exchanges,
-              detects cross-DEX arbitrage in real time, and executes
-              atomically on-chain.
-            </p>
+            <motion.p
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              custom={1}
+              className="text-photon-text-secondary text-base sm:text-lg leading-relaxed mb-10 max-w-lg"
+            >
+              Discover cross-market price discrepancies with a trading interface
+              built for liquidity analysis, intelligent routing, and disciplined
+              execution.
+            </motion.p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <motion.div
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              custom={2}
+              className="flex flex-wrap gap-4"
+            >
+              {/* Primary CTA */}
               <Link
                 href="/swap"
-                className="w-full sm:w-auto bg-photon-blue hover:bg-photon-blue/80 text-white font-semibold px-8 py-3.5 rounded-xl text-[15px] transition-all duration-200 text-center shadow-lg shadow-photon-blue/20 hover:shadow-photon-blue/30"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium text-sm
+                  bg-gradient-photon text-photon-bg
+                  hover:shadow-lg hover:shadow-photon-blue/20
+                  transition-all duration-200 hover:-translate-y-0.5"
               >
-                Launch App
+                Launch Terminal
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                  <path d="M3 8h10M9 4l4 4-4 4" />
+                </svg>
               </Link>
+
+              {/* Secondary CTA */}
               <Link
                 href="/arbitrage"
-                className="w-full sm:w-auto bg-transparent border border-photon-border hover:border-photon-border-strong text-photon-text font-semibold px-8 py-3.5 rounded-xl text-[15px] transition-all duration-200 text-center"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium text-sm
+                  text-photon-text-secondary border border-photon-border
+                  hover:border-photon-border-strong hover:text-photon-text
+                  transition-all duration-200"
               >
                 Explore Arbitrage
               </Link>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* ────── Stats Bar ────── */}
-      <section className="border-y border-photon-border bg-photon-surface/30">
-        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-8 md:py-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            {[
-              { value: "3+", label: "DEXs Aggregated" },
-              { value: "<5s", label: "Arb Detection" },
-              { value: "100%", label: "Gas Optimized" },
-              { value: "Atomic", label: "Execution" },
-            ].map((s) => (
-              <div key={s.label} className="text-center">
-                <div className="text-[26px] md:text-[32px] font-bold font-num text-photon-text">
-                  {s.value}
-                </div>
-                <div className="text-[12px] text-photon-text-muted mt-1 tracking-wide uppercase">
-                  {s.label}
-                </div>
-              </div>
-            ))}
+      {/* ── Features Section ── */}
+      <section ref={featuresRef} className="py-24 sm:py-32 relative">
+        {/* Subtle top glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-glow pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="font-heading font-bold text-2xl sm:text-3xl text-photon-text mb-3">
+              Built for Precision
+            </h2>
+            <p className="text-photon-text-secondary text-sm sm:text-base max-w-md mx-auto">
+              A complete toolkit for navigating decentralized liquidity with confidence.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <FeatureCard
+              icon={<AggregateIcon />}
+              title="DEX Aggregation"
+              description="Route optimization across multiple decentralized exchanges. Compare quotes in real time and execute through the best available liquidity path."
+              index={0}
+            />
+            <FeatureCard
+              icon={<MLIcon />}
+              title="ML-Powered Arbitrage"
+              description="Machine learning spread prediction identifies cross-market price discrepancies before they close. Backtest strategies against historical data."
+              index={1}
+            />
+            <FeatureCard
+              icon={<ShieldIcon />}
+              title="Risk Controls"
+              description="Position sizing, slippage limits, and execution safety checks. Every trade includes configurable guardrails for disciplined execution."
+              index={2}
+            />
           </div>
         </div>
       </section>
 
-      {/* ────── Features Grid ────── */}
-      <section className="max-w-[1100px] mx-auto px-4 sm:px-6 py-20 md:py-28">
-        <div className="text-center mb-14">
-          <h2 className="text-[28px] md:text-[40px] font-heading font-bold text-photon-text mb-4 tracking-tight">
-            Why Photon?
-          </h2>
-          <p className="text-photon-text-muted text-[15px] md:text-[16px] max-w-[460px] mx-auto leading-relaxed">
-            One platform for efficient DeFi trading and arbitrage.
-          </p>
-        </div>
+      {/* ── How It Works Section ── */}
+      <section className="py-24 sm:py-32 border-t border-photon-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="font-heading font-bold text-2xl sm:text-3xl text-photon-text mb-3">
+              How It Works
+            </h2>
+            <p className="text-photon-text-secondary text-sm sm:text-base max-w-md mx-auto">
+              Three steps from market scan to execution.
+            </p>
+          </motion.div>
 
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {features.map((f) => (
-            <div
-              key={f.title}
-              className="bg-photon-surface border border-photon-border rounded-2xl p-6 hover:border-photon-border-strong transition-all duration-300 group"
+          <motion.div
+            variants={fadeIn}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="flex flex-col md:flex-row gap-12 md:gap-8"
+          >
+            <StepItem
+              icon={<ScanIcon />}
+              title="Scan"
+              description="Continuously monitor pricing across DEX liquidity pools for spread opportunities."
+              stepNum={1}
+            />
+            <StepItem
+              icon={<AnalyzeIcon />}
+              title="Analyze"
+              description="ML models evaluate spread stability, gas costs, and execution probability in real time."
+              stepNum={2}
+            />
+            <StepItem
+              icon={<ExecuteIcon />}
+              title="Execute"
+              description="One-click execution with optimal routing, slippage protection, and position sizing."
+              stepNum={3}
+              isLast
+            />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── Final CTA Section ── */}
+      <section className="py-24 sm:py-32 relative overflow-hidden">
+        {/* Background glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-photon-blue/[0.03] blur-3xl pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="text-center"
+          >
+            <h2 className="font-heading font-bold text-3xl sm:text-4xl text-photon-text mb-4">
+              Start Trading with{" "}
+              <span className="text-gradient">Photon</span>
+            </h2>
+            <p className="text-photon-text-secondary text-base mb-10 max-w-md mx-auto">
+              Connect your wallet and access decentralized liquidity across multiple exchanges.
+            </p>
+
+            <Link
+              href="/swap"
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-medium text-sm
+                bg-gradient-photon text-photon-bg
+                hover:shadow-lg hover:shadow-photon-blue/20
+                transition-all duration-200 hover:-translate-y-0.5"
             >
-              <div className="w-10 h-10 rounded-xl bg-photon-bg-elevated flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300">
-                {f.icon}
-              </div>
-              <h3 className="text-[15px] font-semibold text-photon-text mb-2">
-                {f.title}
-              </h3>
-              <p className="text-[13px] text-photon-text-muted leading-relaxed">
-                {f.desc}
-              </p>
-            </div>
-          ))}
+              Launch Terminal
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                <path d="M3 8h10M9 4l4 4-4 4" />
+              </svg>
+            </Link>
+          </motion.div>
         </div>
       </section>
 
-      {/* ────── How It Works ────── */}
-      <section className="border-t border-photon-border">
-        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-20 md:py-28">
-          <h2 className="text-[28px] md:text-[40px] font-heading font-bold text-photon-text text-center mb-14 tracking-tight">
-            How It Works
-          </h2>
-          <div className="grid md:grid-cols-3 gap-10 md:gap-12">
-            {steps.map((item) => (
-              <div key={item.step}>
-                <div className="text-[56px] md:text-[64px] font-bold font-num text-photon-border leading-none mb-4 select-none">
-                  {item.step}
-                </div>
-                <h3 className="text-[17px] font-semibold text-photon-text mb-2">
-                  {item.title}
-                </h3>
-                <p className="text-[14px] text-photon-text-muted leading-relaxed">
-                  {item.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ────── Tech Stack ────── */}
-      <section className="max-w-[1100px] mx-auto px-4 sm:px-6 py-16 md:py-20">
-        <h2 className="text-[28px] md:text-[36px] font-heading font-bold text-photon-text text-center mb-10 tracking-tight">
-          Tech Stack
-        </h2>
-        <div className="flex flex-wrap justify-center gap-2.5">
-          {techStack.map((tech) => (
-            <span
-              key={tech}
-              className="bg-photon-surface border border-photon-border rounded-lg px-4 py-2 text-[13px] text-photon-text-muted hover:text-photon-text hover:border-photon-border-strong transition-all duration-200 cursor-default"
-            >
-              {tech}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      {/* ────── Footer ────── */}
+      {/* ── Footer ── */}
       <footer className="border-t border-photon-border py-8">
-        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 text-center text-photon-text-muted text-[12px] tracking-wide">
-          Photon — DEX Aggregator & Arbitrage Bot | Ethereum Sepolia Testnet
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+          <span className="text-xs text-photon-text-muted">
+            Photon DEX Aggregator &mdash; Sepolia Testnet
+          </span>
+          <span className="text-xs text-photon-text-muted">
+            Built for educational purposes
+          </span>
         </div>
       </footer>
     </div>
