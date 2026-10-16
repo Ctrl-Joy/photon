@@ -1,12 +1,45 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import { useState, useEffect, useCallback } from "react";
 import { getTradeStats } from "../lib/api";
 
-function Metric({ label, value, color = "text-photon-text" }) {
+function formatPercent(val) {
+  if (val == null) return "--";
+  return `${Number(val).toFixed(1)}%`;
+}
+
+function formatNum(val, decimals = 2) {
+  if (val == null) return "--";
+  return Number(val).toFixed(decimals);
+}
+
+function SkeletonCard() {
   return (
-    <div className="bg-photon-bg-elevated rounded-xl p-3">
-      <div className="text-photon-text-muted text-[10px] uppercase tracking-wider mb-0.5">{label}</div>
-      <div className={`text-[14px] font-bold font-num ${color}`}>{value}</div>
+    <div className="surface-raised animate-pulse p-4">
+      <div className="mb-2 h-3 w-20 rounded bg-photon-surface" />
+      <div className="h-7 w-24 rounded bg-photon-surface" />
+    </div>
+  );
+}
+
+function MetricCard({ label, value, color, subValue, bar }) {
+  return (
+    <div className="surface-raised p-4 transition-all hover:border-photon-border-strong">
+      <p className="mb-1 text-xs text-photon-text-muted">{label}</p>
+      <p className={`font-num text-xl font-semibold ${color || "text-photon-text"}`}>
+        {value}
+      </p>
+      {subValue && (
+        <p className="mt-0.5 text-xs text-photon-text-muted">{subValue}</p>
+      )}
+      {bar != null && (
+        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-photon-surface">
+          <div
+            className="h-full rounded-full bg-photon-cyan transition-all"
+            style={{ width: `${Math.min(Math.max(bar, 0), 100)}%` }}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -14,86 +47,124 @@ function Metric({ label, value, color = "text-photon-text" }) {
 export default function RiskMetrics() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const s = await getTradeStats();
-        setStats(s);
-      } catch {
-        setStats({
-          totalTrades: 47,
-          winRate: 72.3,
-          totalProfit: 2.847,
-          sharpeRatio: 1.85,
-          maxDrawdown: -0.342,
-          avgProfit: 0.0605,
-          totalGas: 0.089,
-          bestTrade: 0.412,
-          worstTrade: -0.156,
-          profitFactor: 3.2,
-        });
-      }
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getTradeStats();
+      setStats(data);
+    } catch (err) {
+      setError(err.message || "Failed to load metrics");
+    } finally {
       setLoading(false);
     }
-    load();
   }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   if (loading) {
     return (
-      <div className="bg-photon-surface border border-photon-border rounded-2xl p-4">
-        <div className="text-photon-text-muted text-[13px]">Loading metrics...</div>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <SkeletonCard key={i} />
+        ))}
       </div>
     );
   }
 
-  return (
-    <div className="bg-photon-surface border border-photon-border rounded-2xl overflow-hidden">
-      <div className="px-4 py-3 border-b border-photon-border">
-        <span className="text-[13px] font-semibold text-photon-text font-heading">Performance</span>
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+        <svg className="h-8 w-8 text-photon-negative" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+        </svg>
+        <p className="text-sm text-photon-text-secondary">{error}</p>
+        <button
+          onClick={fetchData}
+          className="rounded-lg border border-photon-border px-4 py-1.5 text-sm font-medium text-photon-text-secondary transition-colors hover:bg-photon-surface-raised hover:text-photon-text"
+        >
+          Retry
+        </button>
       </div>
+    );
+  }
 
-      <div className="p-3 grid grid-cols-2 gap-2">
-        <Metric
-          label="Total Profit"
-          value={`${stats?.totalProfit >= 0 ? "+" : ""}${(stats?.totalProfit || 0).toFixed(4)} ETH`}
-          color={stats?.totalProfit >= 0 ? "text-photon-positive" : "text-photon-negative"}
-        />
-        <Metric
-          label="Win Rate"
-          value={`${(stats?.winRate || 0).toFixed(1)}%`}
-          color={(stats?.winRate || 0) >= 50 ? "text-photon-positive" : "text-photon-negative"}
-        />
-        <Metric
-          label="Sharpe Ratio"
-          value={(stats?.sharpeRatio || 0).toFixed(2)}
-          color={(stats?.sharpeRatio || 0) >= 1 ? "text-photon-positive" : "text-photon-text-muted"}
-        />
-        <Metric
-          label="Max Drawdown"
-          value={`${(stats?.maxDrawdown || 0).toFixed(4)} ETH`}
-          color="text-photon-negative"
-        />
-        <Metric
-          label="Total Trades"
-          value={stats?.totalTrades || 0}
-        />
-        <Metric
-          label="Avg Profit"
-          value={`${(stats?.avgProfit || 0).toFixed(4)} ETH`}
-          color={(stats?.avgProfit || 0) >= 0 ? "text-photon-positive" : "text-photon-negative"}
-        />
-        <Metric
-          label="Best Trade"
-          value={`+${(stats?.bestTrade || 0).toFixed(4)} ETH`}
-          color="text-photon-positive"
-        />
-        <Metric
-          label="Gas Spent"
-          value={`${(stats?.totalGas || 0).toFixed(5)} ETH`}
-          color="text-photon-text-muted"
-        />
+  if (!stats) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="text-sm text-photon-text-muted">No metrics available.</p>
       </div>
+    );
+  }
+
+  const totalReturn = stats.totalReturn ?? stats.total_return;
+  const sharpeRatio = stats.sharpeRatio ?? stats.sharpe_ratio;
+  const maxDrawdown = stats.maxDrawdown ?? stats.max_drawdown;
+  const winRate = stats.winRate ?? stats.win_rate;
+  const avgDuration = stats.avgTradeDuration ?? stats.avg_trade_duration;
+  const activePositions = stats.activePositions ?? stats.active_positions;
+
+  const returnColor =
+    totalReturn == null
+      ? "text-photon-text"
+      : totalReturn >= 0
+      ? "text-photon-positive"
+      : "text-photon-negative";
+
+  const returnArrow =
+    totalReturn == null ? "" : totalReturn >= 0 ? "↑ " : "↓ ";
+
+  return (
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+      <MetricCard
+        label="Total Return"
+        value={`${returnArrow}${formatPercent(totalReturn)}`}
+        color={returnColor}
+      />
+      <MetricCard
+        label="Sharpe Ratio"
+        value={formatNum(sharpeRatio)}
+        color={
+          sharpeRatio != null && sharpeRatio >= 1
+            ? "text-photon-positive"
+            : sharpeRatio != null && sharpeRatio < 0
+            ? "text-photon-negative"
+            : "text-photon-text"
+        }
+        subValue={
+          sharpeRatio != null
+            ? sharpeRatio >= 2
+              ? "Excellent"
+              : sharpeRatio >= 1
+              ? "Good"
+              : "Below target"
+            : undefined
+        }
+      />
+      <MetricCard
+        label="Max Drawdown"
+        value={formatPercent(maxDrawdown)}
+        color="text-photon-negative"
+      />
+      <MetricCard
+        label="Win Rate"
+        value={formatPercent(winRate)}
+        bar={winRate}
+      />
+      <MetricCard
+        label="Avg Trade Duration"
+        value={avgDuration ?? "--"}
+        color="text-photon-text"
+      />
+      <MetricCard
+        label="Active Positions"
+        value={activePositions != null ? activePositions : "--"}
+        color="text-photon-cyan"
+      />
     </div>
   );
 }

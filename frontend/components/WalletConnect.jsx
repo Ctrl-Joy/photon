@@ -1,51 +1,123 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import { useState, useCallback } from "react";
 import { connectWallet } from "../lib/contract";
 
-export default function WalletConnect() {
-  const [address, setAddress] = useState(null);
-  const [connecting, setConnecting] = useState(false);
+/* ─── Truncate address: 0x1234...abcd ─── */
+function truncateAddress(addr) {
+  if (!addr) return "";
+  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+}
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && window.ethereum) {
-      window.ethereum.request({ method: "eth_accounts" }).then((accounts) => {
-        if (accounts.length > 0) setAddress(accounts[0]);
+/* ─── Status indicator dot ─── */
+function StatusDot({ status }) {
+  const colors = {
+    connected:    "bg-photon-positive shadow-[0_0_6px_theme(colors.photon.positive)]",
+    connecting:   "bg-photon-warning shadow-[0_0_6px_theme(colors.photon.warning)] animate-pulse-soft",
+    disconnected: "bg-photon-text-muted",
+    error:        "bg-photon-negative shadow-[0_0_6px_theme(colors.photon.negative)]",
+  };
+
+  return (
+    <span
+      className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${colors[status] || colors.disconnected}`}
+    />
+  );
+}
+
+export default function WalletConnect() {
+  const [wallet, setWallet] = useState({
+    address:  null,
+    provider: null,
+    signer:   null,
+  });
+  const [status, setStatus] = useState("disconnected"); // disconnected | connecting | connected | error
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const handleConnect = useCallback(async () => {
+    setErrorMsg("");
+    setStatus("connecting");
+
+    try {
+      const result = await connectWallet();
+      setWallet({
+        address:  result.address,
+        provider: result.provider,
+        signer:   result.signer,
       });
-      window.ethereum.on("accountsChanged", (accounts) => {
-        setAddress(accounts[0] || null);
-      });
+      setStatus("connected");
+    } catch (err) {
+      console.error("[WalletConnect]", err);
+      setErrorMsg(err?.message || "Connection failed");
+      setStatus("error");
+
+      /* Reset to disconnected after a few seconds so user can retry */
+      setTimeout(() => setStatus("disconnected"), 4000);
     }
   }, []);
 
-  const handleConnect = async () => {
-    setConnecting(true);
-    try {
-      const { address: addr } = await connectWallet();
-      setAddress(addr);
-    } catch (err) {
-      console.error("Wallet connection failed:", err);
-    }
-    setConnecting(false);
-  };
-
-  if (address) {
+  /* ─── Connected state ─── */
+  if (status === "connected" && wallet.address) {
     return (
-      <div className="flex items-center gap-2 bg-photon-surface border border-photon-border rounded-xl px-3 py-1.5">
-        <div className="w-2 h-2 rounded-full bg-photon-positive shadow-[0_0_6px_#54D6A0]" />
-        <span className="text-[13px] font-num text-photon-text-muted">
-          {address.slice(0, 6)}...{address.slice(-4)}
+      <button
+        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-photon-surface border border-photon-border hover:border-photon-border-strong text-sm transition-all duration-200 cursor-default"
+        title={wallet.address}
+      >
+        <StatusDot status="connected" />
+        <span className="font-mono text-xs text-photon-text tabular-nums">
+          {truncateAddress(wallet.address)}
         </span>
+      </button>
+    );
+  }
+
+  /* ─── Error state ─── */
+  if (status === "error") {
+    return (
+      <div className="flex flex-col items-end gap-1">
+        <button
+          onClick={handleConnect}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-photon-negative/30 bg-photon-surface text-sm text-photon-negative hover:bg-photon-negative/10 transition-all duration-200"
+        >
+          <StatusDot status="error" />
+          Retry
+        </button>
+        {errorMsg && (
+          <span className="text-[11px] text-photon-negative/70 max-w-[200px] truncate">
+            {errorMsg}
+          </span>
+        )}
       </div>
     );
   }
 
+  /* ─── Disconnected / Connecting state ─── */
   return (
     <button
       onClick={handleConnect}
-      disabled={connecting}
-      className="bg-photon-blue hover:bg-photon-blue/80 text-white text-[13px] font-semibold px-4 py-1.5 rounded-xl transition-colors disabled:opacity-50"
+      disabled={status === "connecting"}
+      className="group relative flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium
+        transition-all duration-200 overflow-hidden
+        bg-photon-surface border border-photon-border
+        hover:border-transparent
+        disabled:opacity-60 disabled:cursor-wait"
     >
-      {connecting ? "Connecting..." : "Connect Wallet"}
+      {/* Gradient border on hover */}
+      <span
+        className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+        style={{
+          padding: "1px",
+          background: "linear-gradient(135deg, #53B8FF, #63F0E0)",
+          WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+          WebkitMaskComposite: "xor",
+          maskComposite: "exclude",
+        }}
+      />
+
+      <StatusDot status={status} />
+      <span className="text-photon-text-secondary group-hover:text-photon-text transition-colors">
+        {status === "connecting" ? "Connecting..." : "Connect Wallet"}
+      </span>
     </button>
   );
 }

@@ -1,207 +1,552 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { getSwapQuote, executeSwap } from "../lib/api";
-import { connectWallet, getRouterContract, getTokenContract, parseAmount } from "../lib/contract";
+import { connectWallet } from "../lib/contract";
 
 const TOKENS = [
-  { symbol: "WETH", name: "Wrapped Ether", color: "#627EEA" },
-  { symbol: "USDC", name: "USD Coin", color: "#2775CA" },
-  { symbol: "DAI", name: "Dai Stablecoin", color: "#F5AC37" },
+  { symbol: "ETH", name: "Ethereum", color: "#627EEA", decimals: 18 },
+  { symbol: "WBTC", name: "Wrapped Bitcoin", color: "#F7931A", decimals: 8 },
+  { symbol: "USDC", name: "USD Coin", color: "#2775CA", decimals: 6 },
+  { symbol: "USDT", name: "Tether", color: "#26A17B", decimals: 6 },
+  { symbol: "DAI", name: "Dai", color: "#F5AC37", decimals: 18 },
+  { symbol: "LINK", name: "Chainlink", color: "#2A5ADA", decimals: 18 },
 ];
 
-function TokenIcon({ symbol }) {
-  const token = TOKENS.find((t) => t.symbol === symbol);
+const SLIPPAGE_OPTIONS = [0.1, 0.5, 1.0];
+
+function TokenIcon({ symbol, color, size = 28 }) {
   return (
     <div
-      className="token-icon"
-      style={{ background: token?.color || "#333" }}
+      className="token-icon flex-shrink-0"
+      style={{
+        width: size,
+        height: size,
+        backgroundColor: `${color}20`,
+        color: color,
+      }}
     >
-      {symbol?.[0]}
+      {symbol.slice(0, 2)}
     </div>
   );
 }
 
+function TokenSelector({ selected, onSelect, otherToken, onClose }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.15 }}
+      className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-xl border border-photon-border bg-photon-bg-elevated shadow-xl"
+    >
+      <div className="px-3 py-2 text-xs font-medium text-photon-text-muted">
+        Select token
+      </div>
+      {TOKENS.map((token) => {
+        const isDisabled = token.symbol === otherToken?.symbol;
+        return (
+          <button
+            key={token.symbol}
+            onClick={() => {
+              if (!isDisabled) {
+                onSelect(token);
+                onClose();
+              }
+            }}
+            disabled={isDisabled}
+            className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors ${
+              isDisabled
+                ? "cursor-not-allowed opacity-30"
+                : "hover:bg-photon-surface"
+            } ${
+              selected?.symbol === token.symbol ? "bg-photon-surface" : ""
+            }`}
+          >
+            <TokenIcon symbol={token.symbol} color={token.color} />
+            <div>
+              <div className="text-sm font-medium text-photon-text">
+                {token.symbol}
+              </div>
+              <div className="text-xs text-photon-text-muted">{token.name}</div>
+            </div>
+          </button>
+        );
+      })}
+    </motion.div>
+  );
+}
+
 export default function SwapCard() {
-  const [tokenIn, setTokenIn] = useState("WETH");
+  const [tokenIn, setTokenIn] = useState(TOKENS[0]); // ETH
+  const [tokenOut, setTokenOut] = useState(TOKENS[2]); // USDC
   const [amountIn, setAmountIn] = useState("");
+  const [amountOut, setAmountOut] = useState("");
+  const [showTokenInSelect, setShowTokenInSelect] = useState(false);
+  const [showTokenOutSelect, setShowTokenOutSelect] = useState(false);
+  const [slippage, setSlippage] = useState(0.5);
+  const [customSlippage, setCustomSlippage] = useState("");
+  const [showSlippageEditor, setShowSlippageEditor] = useState(false);
+  const [rotated, setRotated] = useState(false);
+
   const [quote, setQuote] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [swapping, setSwapping] = useState(false);
-  const [result, setResult] = useState(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [quoteError, setQuoteError] = useState(null);
 
-  // Fetch quote on amount change
+  const [wallet, setWallet] = useState(null);
+  const [txState, setTxState] = useState("idle"); // idle | pending | submitted | confirmed | failed
+  const [txError, setTxError] = useState(null);
+
+  const debounceRef = useRef(null);
+  const cardRef = useRef(null);
+
+  // Close dropdowns on outside click
   useEffect(() => {
-    if (!amountIn || parseFloat(amountIn) <= 0) {
-      setQuote(null);
-      return;
-    }
-    const timeout = setTimeout(async () => {
-      setLoading(true);
-      try {
-        const q = await getSwapQuote(tokenIn, amountIn);
-        setQuote(q);
-      } catch (err) {
-        console.error("Quote error:", err);
-        setQuote(null);
+    function handleClick(e) {
+      if (cardRef.current && !cardRef.current.contains(e.target)) {
+        setShowTokenInSelect(false);
+        setShowTokenOutSelect(false);
+        setShowSlippageEditor(false);
       }
-      setLoading(false);
-    }, 500);
-    return () => clearTimeout(timeout);
-  }, [tokenIn, amountIn]);
-
-  const handleSwap = async () => {
-    if (!quote) return;
-    setSwapping(true);
-    setResult(null);
-    try {
-      const res = await executeSwap({
-        tokenIn,
-        amountIn: parseFloat(amountIn),
-        minAmountOut: quote.bestQuote?.amountOut * 0.995 || 0,
-        pool: quote.bestQuote?.pool || "",
-      });
-      setResult({ success: true, data: res });
-      setAmountIn("");
-      setQuote(null);
-    } catch (err) {
-      setResult({ success: false, error: err.message });
     }
-    setSwapping(false);
-  };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
-  const tokenOut = tokenIn === "WETH" ? "USDC" : "WETH";
+  // Debounced quote fetching
+  const fetchQuote = useCallback(
+    (amount) => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+
+      if (!amount || parseFloat(amount) <= 0) {
+        setQuote(null);
+        setAmountOut("");
+        setQuoteError(null);
+        return;
+      }
+
+      setQuoteLoading(true);
+      setQuoteError(null);
+
+      debounceRef.current = setTimeout(async () => {
+        try {
+          const result = await getSwapQuote(tokenIn.symbol, amount);
+          setQuote(result);
+          setAmountOut(result.amountOut?.toString() || "0");
+          setQuoteLoading(false);
+        } catch (err) {
+          console.error("Quote fetch failed:", err);
+          setQuoteError(err.message || "Failed to get quote");
+          setQuoteLoading(false);
+        }
+      }, 500);
+    },
+    [tokenIn.symbol]
+  );
+
+  // Re-fetch quote when token changes
+  useEffect(() => {
+    if (amountIn) fetchQuote(amountIn);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tokenIn.symbol, tokenOut.symbol]);
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
+  function handleAmountChange(value) {
+    // Allow only valid number input
+    if (value === "" || /^\d*\.?\d*$/.test(value)) {
+      setAmountIn(value);
+      fetchQuote(value);
+    }
+  }
+
+  function handleSwapDirection() {
+    setRotated((r) => !r);
+    const prevIn = tokenIn;
+    const prevOut = tokenOut;
+    const prevAmountOut = amountOut;
+    setTokenIn(prevOut);
+    setTokenOut(prevIn);
+    setAmountIn(prevAmountOut);
+    setAmountOut("");
+    setQuote(null);
+    if (prevAmountOut) fetchQuote(prevAmountOut);
+  }
+
+  async function handleConnectWallet() {
+    try {
+      const result = await connectWallet();
+      setWallet(result);
+    } catch (err) {
+      console.error("Wallet connection failed:", err);
+    }
+  }
+
+  async function handleExecuteSwap() {
+    if (!wallet || !amountIn || !quote) return;
+
+    setTxState("pending");
+    setTxError(null);
+
+    try {
+      const data = {
+        tokenIn: tokenIn.symbol,
+        tokenOut: tokenOut.symbol,
+        amountIn: amountIn,
+        minAmountOut: (
+          parseFloat(amountOut) *
+          (1 - slippage / 100)
+        ).toString(),
+        slippage: slippage,
+        walletAddress: wallet.address,
+      };
+
+      setTxState("submitted");
+      await executeSwap(data);
+      setTxState("confirmed");
+
+      // Reset after confirmation
+      setTimeout(() => {
+        setTxState("idle");
+        setAmountIn("");
+        setAmountOut("");
+        setQuote(null);
+      }, 3000);
+    } catch (err) {
+      console.error("Swap execution failed:", err);
+      setTxError(err.message || "Swap failed");
+      setTxState("failed");
+
+      setTimeout(() => {
+        setTxState("idle");
+        setTxError(null);
+      }, 4000);
+    }
+  }
+
+  function getButtonState() {
+    if (!wallet) return { label: "Connect Wallet", action: handleConnectWallet, enabled: true };
+    if (txState === "pending") return { label: "Confirming...", action: null, enabled: false };
+    if (txState === "submitted") return { label: "Transaction Submitted", action: null, enabled: false };
+    if (txState === "confirmed") return { label: "Swap Confirmed!", action: null, enabled: false };
+    if (txState === "failed") return { label: txError || "Swap Failed", action: null, enabled: false };
+    if (!amountIn || parseFloat(amountIn) <= 0) return { label: "Enter Amount", action: null, enabled: false };
+    if (quoteLoading) return { label: "Fetching Quote...", action: null, enabled: false };
+    if (quoteError) return { label: "Quote Unavailable", action: null, enabled: false };
+    return {
+      label: `Swap ${tokenIn.symbol} for ${tokenOut.symbol}`,
+      action: handleExecuteSwap,
+      enabled: true,
+    };
+  }
+
+  const buttonState = getButtonState();
+  const effectiveSlippage = customSlippage ? parseFloat(customSlippage) : slippage;
 
   return (
-    <div className="w-full max-w-[420px] mx-auto">
-      {/* Card */}
-      <div className="bg-photon-surface border border-photon-border rounded-2xl p-5">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-[15px] font-semibold text-photon-text font-heading">Swap</span>
-          <button className="text-photon-text-muted hover:text-photon-text transition-colors p-1">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="3" />
-              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-            </svg>
-          </button>
-        </div>
-
-        {/* You Pay */}
-        <div className="bg-photon-bg-elevated rounded-xl p-4 mb-1">
-          <div className="text-[13px] text-photon-text-muted mb-2">You pay</div>
-          <div className="flex items-center justify-between gap-3">
-            <input
-              type="number"
-              value={amountIn}
-              onChange={(e) => setAmountIn(e.target.value)}
-              placeholder="0"
-              className="bg-transparent text-[28px] font-medium text-photon-text w-full outline-none placeholder:text-photon-text-muted font-num"
-            />
-            <div className="flex items-center gap-2 bg-photon-surface-raised hover:bg-photon-border-strong rounded-xl px-3 py-2 cursor-pointer transition-colors flex-shrink-0">
-              <TokenIcon symbol={tokenIn} />
-              <select
-                value={tokenIn}
-                onChange={(e) => setTokenIn(e.target.value)}
-                className="bg-transparent text-photon-text text-[14px] font-semibold outline-none cursor-pointer appearance-none pr-4"
-                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2366768B' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right center' }}
-              >
-                {TOKENS.map((t) => (
-                  <option key={t.symbol} value={t.symbol} className="bg-photon-surface">
-                    {t.symbol}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Swap Arrow */}
-        <div className="flex justify-center -my-2 relative z-10">
-          <div className="bg-photon-surface border-4 border-photon-surface rounded-xl p-1.5">
-            <div className="bg-photon-bg-elevated rounded-lg p-1.5 hover:bg-photon-surface-raised transition-colors cursor-pointer">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#66768B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 5v14M5 12l7 7 7-7" />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        {/* You Receive */}
-        <div className="bg-photon-bg-elevated rounded-xl p-4 mb-3">
-          <div className="text-[13px] text-photon-text-muted mb-2">You receive</div>
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-[28px] font-medium font-num text-photon-text">
-              {loading
-                ? "..."
-                : quote?.bestQuote?.amountOut
-                ? parseFloat(quote.bestQuote.amountOut).toFixed(4)
-                : "0"}
-            </span>
-            <div className="flex items-center gap-2 bg-photon-surface-raised rounded-xl px-3 py-2 flex-shrink-0">
-              <TokenIcon symbol={tokenOut} />
-              <span className="text-[14px] font-semibold text-photon-text">{tokenOut}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Route Info */}
-        {quote?.bestQuote && (
-          <div className="space-y-2 mb-3 px-1">
-            <div className="flex justify-between text-[13px]">
-              <span className="text-photon-text-muted">Route</span>
-              <span className="text-photon-text">{quote.bestQuote.poolName || "Best Pool"}</span>
-            </div>
-            <div className="flex justify-between text-[13px]">
-              <span className="text-photon-text-muted">Price impact</span>
-              <span className="text-photon-positive">&lt; 0.1%</span>
-            </div>
-            {quote.allQuotes && (
-              <div className="flex justify-between text-[13px]">
-                <span className="text-photon-text-muted">Pools checked</span>
-                <span className="text-photon-text">{quote.allQuotes.length}</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Swap Button */}
+    <div ref={cardRef} className="surface-card flex w-full flex-col p-4">
+      {/* Header */}
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="font-heading text-base font-semibold text-photon-text">
+          Swap
+        </h3>
         <button
-          onClick={handleSwap}
-          disabled={!quote || swapping || !amountIn}
-          className={`w-full font-semibold py-3.5 rounded-xl text-[15px] transition-all ${
-            !amountIn
-              ? "bg-photon-bg-elevated text-photon-text-muted cursor-not-allowed"
-              : !quote
-              ? "bg-photon-bg-elevated text-photon-text-muted cursor-wait"
-              : "bg-photon-blue hover:bg-photon-blue/80 text-white cursor-pointer"
-          } disabled:opacity-60`}
+          onClick={() => setShowSlippageEditor((s) => !s)}
+          className="flex items-center gap-1 rounded-lg border border-photon-border px-2 py-1 text-xs text-photon-text-secondary transition-colors hover:border-photon-border-strong"
         >
-          {swapping
-            ? "Swapping..."
-            : !amountIn
-            ? "Enter an amount"
-            : !quote
-            ? loading
-              ? "Finding best price..."
-              : "Enter an amount"
-            : "Swap"}
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+          </svg>
+          <span className="font-num">{effectiveSlippage}%</span>
         </button>
       </div>
 
-      {/* Result toast */}
-      {result && (
-        <div
-          className={`mt-3 p-3 rounded-xl text-[13px] border animate-fade-in ${
-            result.success
-              ? "bg-photon-positive/5 border-photon-positive/20 text-photon-positive"
-              : "bg-photon-negative/5 border-photon-negative/20 text-photon-negative"
-          }`}
+      {/* Slippage editor */}
+      <AnimatePresence>
+        {showSlippageEditor && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="mb-3 overflow-hidden"
+          >
+            <div className="rounded-lg border border-photon-border bg-photon-bg-elevated p-3">
+              <div className="mb-2 text-xs text-photon-text-muted">
+                Slippage Tolerance
+              </div>
+              <div className="flex items-center gap-2">
+                {SLIPPAGE_OPTIONS.map((opt) => (
+                  <button
+                    key={opt}
+                    onClick={() => {
+                      setSlippage(opt);
+                      setCustomSlippage("");
+                    }}
+                    className={`rounded-lg px-3 py-1.5 font-num text-xs transition-colors ${
+                      slippage === opt && !customSlippage
+                        ? "bg-photon-blue/20 text-photon-blue"
+                        : "bg-photon-surface text-photon-text-secondary hover:text-photon-text"
+                    }`}
+                  >
+                    {opt}%
+                  </button>
+                ))}
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={customSlippage}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === "" || /^\d*\.?\d*$/.test(v)) {
+                        setCustomSlippage(v);
+                      }
+                    }}
+                    placeholder="Custom"
+                    className="w-full rounded-lg border border-photon-border bg-photon-surface px-3 py-1.5 font-num text-xs text-photon-text outline-none transition-colors placeholder:text-photon-text-muted focus:border-photon-blue"
+                  />
+                  <span className="absolute right-2 top-1/2 -translate-y-1/2 font-num text-xs text-photon-text-muted">
+                    %
+                  </span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* You Pay */}
+      <div className="relative rounded-xl border border-photon-border bg-photon-bg-elevated p-3">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-xs text-photon-text-muted">You Pay</span>
+          <button
+            onClick={() => handleAmountChange("1.0")}
+            className="text-xs text-photon-blue hover:text-photon-cyan"
+          >
+            Max
+          </button>
+        </div>
+        <div className="flex items-center gap-3">
+          <input
+            type="text"
+            inputMode="decimal"
+            value={amountIn}
+            onChange={(e) => handleAmountChange(e.target.value)}
+            placeholder="0.0"
+            className="min-w-0 flex-1 bg-transparent text-right font-num text-2xl font-medium text-photon-text outline-none placeholder:text-photon-text-muted"
+          />
+          <button
+            onClick={() => {
+              setShowTokenInSelect((s) => !s);
+              setShowTokenOutSelect(false);
+            }}
+            className="flex items-center gap-2 rounded-lg border border-photon-border bg-photon-surface px-3 py-2 transition-colors hover:border-photon-border-strong"
+          >
+            <TokenIcon symbol={tokenIn.symbol} color={tokenIn.color} size={24} />
+            <span className="text-sm font-semibold text-photon-text">
+              {tokenIn.symbol}
+            </span>
+            <svg className="h-3 w-3 text-photon-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
+        </div>
+        <AnimatePresence>
+          {showTokenInSelect && (
+            <TokenSelector
+              selected={tokenIn}
+              onSelect={setTokenIn}
+              otherToken={tokenOut}
+              onClose={() => setShowTokenInSelect(false)}
+            />
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Swap direction button */}
+      <div className="relative z-10 -my-2 flex justify-center">
+        <motion.button
+          onClick={handleSwapDirection}
+          animate={{ rotate: rotated ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-photon-border bg-photon-surface text-photon-text-secondary transition-colors hover:border-photon-blue hover:text-photon-blue"
         >
-          {result.success
-            ? `Swap executed! ${result.data?.txHash ? `TX: ${result.data.txHash.slice(0, 10)}...` : "Success (Demo Mode)"}`
-            : `Error: ${result.error}`}
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5 7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5" />
+          </svg>
+        </motion.button>
+      </div>
+
+      {/* You Receive */}
+      <div className="relative rounded-xl border border-photon-border bg-photon-bg-elevated p-3">
+        <div className="mb-2 text-xs text-photon-text-muted">You Receive</div>
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1 text-right font-num text-2xl font-medium text-photon-text">
+            {quoteLoading ? (
+              <div className="ml-auto h-7 w-28 animate-pulse rounded bg-photon-surface-raised" />
+            ) : (
+              amountOut || "0.0"
+            )}
+          </div>
+          <button
+            onClick={() => {
+              setShowTokenOutSelect((s) => !s);
+              setShowTokenInSelect(false);
+            }}
+            className="flex items-center gap-2 rounded-lg border border-photon-border bg-photon-surface px-3 py-2 transition-colors hover:border-photon-border-strong"
+          >
+            <TokenIcon symbol={tokenOut.symbol} color={tokenOut.color} size={24} />
+            <span className="text-sm font-semibold text-photon-text">
+              {tokenOut.symbol}
+            </span>
+            <svg className="h-3 w-3 text-photon-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
+        </div>
+        <AnimatePresence>
+          {showTokenOutSelect && (
+            <TokenSelector
+              selected={tokenOut}
+              onSelect={setTokenOut}
+              otherToken={tokenIn}
+              onClose={() => setShowTokenOutSelect(false)}
+            />
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Quote details */}
+      {quote && !quoteLoading && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          className="mt-3 space-y-1.5 rounded-lg border border-photon-border bg-photon-bg-elevated px-3 py-2.5"
+        >
+          {quote.rate && (
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-photon-text-muted">Rate</span>
+              <span className="font-num text-photon-text-secondary">
+                1 {tokenIn.symbol} = {parseFloat(quote.rate).toFixed(4)} {tokenOut.symbol}
+              </span>
+            </div>
+          )}
+          {quote.priceImpact != null && (
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-photon-text-muted">Price Impact</span>
+              <span
+                className={`font-num ${
+                  parseFloat(quote.priceImpact) > 3
+                    ? "text-photon-negative"
+                    : "text-photon-text-secondary"
+                }`}
+              >
+                {parseFloat(quote.priceImpact).toFixed(2)}%
+              </span>
+            </div>
+          )}
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-photon-text-muted">Min. Received</span>
+            <span className="font-num text-photon-text-secondary">
+              {(parseFloat(amountOut) * (1 - effectiveSlippage / 100)).toFixed(4)}{" "}
+              {tokenOut.symbol}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-photon-text-muted">Slippage</span>
+            <span className="font-num text-photon-text-secondary">
+              {effectiveSlippage}%
+            </span>
+          </div>
+          {quote.route && (
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-photon-text-muted">Route</span>
+              <span className="text-photon-text-secondary">{quote.route}</span>
+            </div>
+          )}
+          {quote.estimatedGas && (
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-photon-text-muted">Est. Gas</span>
+              <span className="font-num text-photon-text-secondary">
+                {quote.estimatedGas}
+              </span>
+            </div>
+          )}
+        </motion.div>
+      )}
+
+      {/* Quote error */}
+      {quoteError && !quoteLoading && (
+        <div className="mt-3 rounded-lg border border-photon-negative/20 bg-photon-negative/5 px-3 py-2 text-xs text-photon-negative">
+          {quoteError}
         </div>
       )}
+
+      {/* Transaction status */}
+      <AnimatePresence>
+        {txState === "submitted" && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-3 flex items-center gap-2 rounded-lg border border-photon-blue/20 bg-photon-blue/5 px-3 py-2"
+          >
+            <div className="h-3 w-3 animate-spin rounded-full border-2 border-photon-blue border-t-transparent" />
+            <span className="text-xs text-photon-blue">
+              Transaction submitted. Waiting for confirmation...
+            </span>
+          </motion.div>
+        )}
+        {txState === "confirmed" && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-3 flex items-center gap-2 rounded-lg border border-photon-positive/20 bg-photon-positive/5 px-3 py-2"
+          >
+            <svg className="h-4 w-4 text-photon-positive" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+            <span className="text-xs text-photon-positive">
+              Swap confirmed successfully!
+            </span>
+          </motion.div>
+        )}
+        {txState === "failed" && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-3 flex items-center gap-2 rounded-lg border border-photon-negative/20 bg-photon-negative/5 px-3 py-2"
+          >
+            <svg className="h-4 w-4 text-photon-negative" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+            <span className="text-xs text-photon-negative">
+              {txError || "Swap failed"}
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Action button */}
+      <button
+        onClick={buttonState.action}
+        disabled={!buttonState.enabled}
+        className={`mt-4 w-full rounded-xl py-3.5 text-sm font-semibold transition-all ${
+          buttonState.enabled
+            ? "bg-gradient-photon text-photon-bg hover:opacity-90 active:scale-[0.98]"
+            : "cursor-not-allowed bg-photon-surface-raised text-photon-text-muted"
+        }`}
+      >
+        {buttonState.label}
+      </button>
     </div>
   );
 }
