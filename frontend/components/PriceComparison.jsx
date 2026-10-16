@@ -17,12 +17,12 @@ export default function PriceComparison() {
 
   if (tokens.length === 0) {
     return (
-      <div className="bg-dex-surface border border-dex-border rounded-2xl p-5">
+      <div className="bg-photon-surface border border-photon-border rounded-2xl p-5">
         <div className="flex items-center gap-2 mb-4">
-          <span className="text-[14px] font-semibold text-white">Live Prices</span>
+          <span className="text-[14px] font-semibold text-photon-text font-heading">Live Prices</span>
           <div className="live-dot" />
         </div>
-        <div className="text-dex-muted text-[13px] text-center py-8">
+        <div className="text-photon-text-muted text-[13px] text-center py-8">
           Connecting to price feed...
         </div>
       </div>
@@ -30,9 +30,9 @@ export default function PriceComparison() {
   }
 
   return (
-    <div className="bg-dex-surface border border-dex-border rounded-2xl p-5">
+    <div className="bg-photon-surface border border-photon-border rounded-2xl p-5">
       <div className="flex items-center gap-2 mb-4">
-        <span className="text-[14px] font-semibold text-white">Live Prices</span>
+        <span className="text-[14px] font-semibold text-photon-text font-heading">Live Prices</span>
         <div className="live-dot" />
       </div>
 
@@ -46,14 +46,14 @@ export default function PriceComparison() {
           const spread = maxPrice > 0 ? (((maxPrice - minPrice) / minPrice) * 100).toFixed(3) : "0";
 
           return (
-            <div key={token} className="bg-dex-card rounded-xl p-3.5">
+            <div key={token} className="bg-photon-bg-elevated rounded-xl p-3.5">
               <div className="flex items-center justify-between mb-2.5">
-                <span className="text-[13px] font-semibold text-white">{token}</span>
+                <span className="text-[13px] font-semibold text-photon-text font-heading">{token}</span>
                 <span
                   className={`text-[11px] font-num px-2 py-0.5 rounded-md ${
                     parseFloat(spread) > 0.5
-                      ? "bg-dex-green/10 text-dex-green"
-                      : "bg-dex-border text-dex-muted"
+                      ? "bg-photon-positive/10 text-photon-positive"
+                      : "bg-photon-border text-photon-text-muted"
                   }`}
                 >
                   {spread}% spread
@@ -65,13 +65,13 @@ export default function PriceComparison() {
                   const isBest = price === minPrice && priceValues.length > 1;
                   return (
                     <div key={dex} className="flex items-center justify-between text-[12px]">
-                      <span className="text-dex-muted">{dex}</span>
+                      <span className="text-photon-text-muted">{dex}</span>
                       <div className="flex items-center gap-1.5">
-                        <span className="font-num text-white">
+                        <span className="font-num text-photon-text">
                           ${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                         {isBest && (
-                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-dex-green/10 text-dex-green uppercase tracking-wide">
+                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-photon-positive/10 text-photon-positive uppercase tracking-wide">
                             Best
                           </span>
                         )}

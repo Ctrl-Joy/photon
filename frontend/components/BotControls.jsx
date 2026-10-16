@@ -36,22 +36,22 @@ export default function BotControls() {
 
   if (loading) {
     return (
-      <div className="bg-dex-surface border border-dex-border rounded-xl p-4">
-        <div className="text-dex-muted text-[13px]">Loading bot...</div>
+      <div className="bg-photon-surface border border-photon-border rounded-2xl p-4">
+        <div className="text-photon-text-muted text-[13px]">Loading bot...</div>
       </div>
     );
   }
 
   return (
-    <div className="bg-dex-surface border border-dex-border rounded-xl overflow-hidden">
+    <div className="bg-photon-surface border border-photon-border rounded-2xl overflow-hidden">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-dex-border flex items-center justify-between">
-        <span className="text-[13px] font-semibold text-white">Arbitrage Bot</span>
+      <div className="px-4 py-3 border-b border-photon-border flex items-center justify-between">
+        <span className="text-[13px] font-semibold text-photon-text font-heading">Arbitrage Bot</span>
         <button
           onClick={handleToggle}
           disabled={toggling}
           className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-            status?.enabled ? "bg-dex-green" : "bg-dex-border-light"
+            status?.enabled ? "bg-photon-positive" : "bg-photon-border-strong"
           }`}
         >
           <span
@@ -65,15 +65,15 @@ export default function BotControls() {
       <div className="p-4 space-y-3">
         {/* Status Row */}
         <div className="grid grid-cols-2 gap-2">
-          <div className="bg-dex-card rounded-lg p-2.5">
-            <div className="text-[10px] text-dex-muted uppercase tracking-wider mb-0.5">Status</div>
-            <div className={`text-[13px] font-semibold ${status?.enabled ? "text-dex-green" : "text-dex-red"}`}>
+          <div className="bg-photon-bg-elevated rounded-xl p-3">
+            <div className="text-photon-text-muted text-[10px] uppercase tracking-wider mb-0.5">Status</div>
+            <div className={`text-[13px] font-semibold ${status?.enabled ? "text-photon-positive" : "text-photon-negative"}`}>
               {status?.enabled ? "Running" : "Stopped"}
             </div>
           </div>
-          <div className="bg-dex-card rounded-lg p-2.5">
-            <div className="text-[10px] text-dex-muted uppercase tracking-wider mb-0.5">Kill Switch</div>
-            <div className={`text-[13px] font-semibold ${status?.killSwitchActive ? "text-dex-red" : "text-dex-green"}`}>
+          <div className="bg-photon-bg-elevated rounded-xl p-3">
+            <div className="text-photon-text-muted text-[10px] uppercase tracking-wider mb-0.5">Kill Switch</div>
+            <div className={`text-[13px] font-semibold ${status?.killSwitchActive ? "text-photon-negative" : "text-photon-positive"}`}>
               {status?.killSwitchActive ? "TRIGGERED" : "Normal"}
             </div>
           </div>
@@ -81,8 +81,8 @@ export default function BotControls() {
 
         {/* Risk Params */}
         <div>
-          <div className="text-[10px] text-dex-muted uppercase tracking-wider mb-2">Risk Parameters</div>
-          <div className="bg-dex-card rounded-lg p-3 space-y-2">
+          <div className="text-photon-text-muted text-[10px] uppercase tracking-wider mb-2">Risk Parameters</div>
+          <div className="bg-photon-bg-elevated rounded-xl p-3 space-y-2">
             {[
               { label: "Max Trade Size", value: `${status?.maxTradeSize || "10"} ETH` },
               { label: "Daily Loss Limit", value: `${status?.dailyLossLimit || "5"} ETH` },
@@ -90,12 +90,12 @@ export default function BotControls() {
               {
                 label: "Today's Loss",
                 value: `${status?.dailyLoss || "0"} ETH`,
-                color: (status?.dailyLoss || 0) > 0 ? "text-dex-red" : "text-dex-green",
+                color: (status?.dailyLoss || 0) > 0 ? "text-photon-negative" : "text-photon-positive",
               },
             ].map((item) => (
               <div key={item.label} className="flex justify-between items-center text-[12px]">
-                <span className="text-dex-muted">{item.label}</span>
-                <span className={`font-num ${item.color || "text-white"}`}>{item.value}</span>
+                <span className="text-photon-text-muted">{item.label}</span>
+                <span className={`font-num ${item.color || "text-photon-text"}`}>{item.value}</span>
               </div>
             ))}
           </div>
